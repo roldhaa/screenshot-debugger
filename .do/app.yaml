@@ -22,3 +22,7 @@ services:
       - key: GEMMA_MODEL
         scope: RUN_AND_BUILD_TIME
         value: gemma-4-26b-a4b-it
+      - key: PUBLIC_APP_URL
+        scope: RUN_TIME
+        value: https://screenshot-debugger-qzyjc.ondigitalocean.app
+
