@@ -118,7 +118,7 @@ export function buildUserPrompt(input: Pick<AnalyzeInput, "framework" | "context
 }
 
 export function clipRepeatedText(text: string): string {
-  const match = text.match(/(.{8,}?)\1{2,}/s);
+  const match = text.match(/([\s\S]{8,}?)\1{2,}/);
   if (!match || match.index === undefined) {
     return text;
   }
