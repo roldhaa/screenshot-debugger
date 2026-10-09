@@ -34,17 +34,17 @@ La doc d'appel est https://ai.google.dev/gemma/docs/core/gemma_on_gemini_api
 
 ## Modèle prévu
 
-`gemma-4-26b-a4b-it`, repli `gemma-4-31b-it`. L'identifiant effectif sera celui imprimé par `npm run prove:gemma`. Il n'est pas encore confirmé sur ce compte.
+`gemma-4-26b-a4b-it`, repli `gemma-4-31b-it`. Un PNG d'un pixel a reçu une réponse live de `gemma-4-26b-a4b-it` avec le statut `unreadable`.
 
 ## Déploiement
 
-L'application est en ligne : https://screenshot-debugger-qzyjc.ondigitalocean.app. Le service coûte 5 $ US par mois. La page et le refus d'un fichier non PNG ont été vérifiés. Le 9 octobre à 12 h 38, le bouton Analyser répondait que la requête ne venait pas de l'application, parce que le nom d'hôte vu par Next.js diffère de celui du navigateur. Le correctif compare aussi `x-forwarded-host`.
+L'application est en ligne : https://screenshot-debugger-qzyjc.ondigitalocean.app. Le service coûte 5 $ US par mois. Le correctif d'hôte est déployé : une origine étrangère reçoit 403, et la même origine reçoit la validation du fichier. La capture React complète n'a pas encore donné de rapport dans le délai.
 
 DevRelay n'est pas disponible dans les outils de cette session. Aucune offre n'a été consultée, publiée ou réclamée.
 
 ## Prochaine action
 
-Ajouter la clé dans `.env`, lancer `npm run prove:gemma`, puis déployer sur Vercel avec la même clé en variable serveur.
+Obtenir un rapport Gemma sur la capture React publique avant de cocher les catégories. Le détail des essais est dans `docs/TEST_REPORT.md`.
 
 ## Échéance
 
