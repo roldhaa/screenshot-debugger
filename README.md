@@ -1,45 +1,135 @@
 # Screenshot Debugger
 
-Application web open source pour les étudiants en JavaScript, TypeScript et React. Une capture d'erreur, avec un contexte facultatif, devient un diagnostic expliqué, une correction proposée et des étapes pour la vérifier.
+[![ci](https://github.com/roldhaa/screenshot-debugger/actions/workflows/ci.yml/badge.svg)](https://github.com/roldhaa/screenshot-debugger/actions/workflows/ci.yml)
+[![licence MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 
-Le diagnostic est produit par **Gemma 4** (`gemma-4-26b-a4b-it`, ou `gemma-4-31b-it` si le premier identifiant est refusé), appelé via la **Gemini API**. Gemma est le modèle. La Gemini API est seulement le moyen d'accès. L'image est envoyée au modèle. Ce n'est pas une réponse préfabriquée.
+Un étudiant voit une erreur dans un terminal ou une console et ne sait pas quoi vérifier. Screenshot Debugger transforme une capture, plus un contexte facultatif, en un diagnostic expliqué, une correction proposée et des étapes pour la contrôler.
 
-## Démo
+Le public visé est les étudiants en JavaScript, TypeScript et React. Le code est open source, licence MIT. L'application n'exécute jamais la correction.
 
-```bash
-node examples/react-map-undefined/verify.mjs
+**Démo en ligne :** [screenshot-debugger-qzyjc.ondigitalocean.app](https://screenshot-debugger-qzyjc.ondigitalocean.app)
+
+Le 9 octobre 2026, le bouton **Charger l'exemple React** puis **Analyser** a produit un rapport réel de Gemma 4 en 9 secondes. L'erreur observée était `TypeError: Cannot read properties of undefined (reading 'map')`.
+
+## Comment ça marche
+
+```text
+Capture PNG ou JPEG
+        |
+        v
+Navigateur  -->  POST /api/analyze  -->  validation
+                                              |
+                                              v
+                                         Gemma 4
+                                     gemma-4-26b-a4b-it
+                                              |
+                                              v
+                                    rapport structuré
+                         erreur observée, hypothèses, correction, vérifications
 ```
 
-Le script bogué échoue sur `reading 'map'`. Le script corrigé affiche `[]`. La capture synthétique est dans `examples/react-map-undefined/error.png`. Dans l'application, le bouton **Charger l'exemple React** charge cette même capture.
+1. Tu déposes une capture d'erreur. Tu peux ajouter ce que tu essayais de faire et un extrait de code.
+2. Le navigateur envoie le tout à `POST /api/analyze`. Il n'appelle pas Google.
+3. Le serveur vérifie le format, la taille et les dimensions. Un fichier qui n'est pas un PNG ou un JPEG est refusé avant l'appel.
+4. Gemma lit l'image et le texte. Le texte présent dans la capture est traité comme une donnée, jamais comme une instruction.
+5. Le serveur valide le JSON du modèle, puis le navigateur affiche le rapport. Tu peux le copier. Tu appliques la correction toi-même.
 
-## Installation
+L'appel réel est dans [`lib/server/gemma.ts`](lib/server/gemma.ts).
 
-Node.js `>= 20.9.0`. Vérifié localement avec Node `v24.11.1`. L'intégration continue utilise Node 22.
+| Élément du rapport | Rôle |
+| --- | --- |
+| Erreur observée | Ce qui est lisible dans la capture |
+| Indices | Lignes ou messages vraiment visibles |
+| Hypothèses | Causes possibles, à vérifier |
+| Correction proposée | Changement minimal, non appliqué |
+| Vérification | Action à faire et résultat attendu |
+| Contexte manquant | Ce qu'il faut fournir si l'image ne suffit pas |
+
+Les statuts possibles sont `diagnosed`, `needs_context`, `unreadable` et `no_error_detected`. Il n'y a pas de pourcentage de confiance.
+
+## Lancer le projet
+
+Il faut Node.js `>= 20.9.0`. Le développement local a été fait avec Node `v24.11.1`. L'intégration continue utilise Node 22.
 
 ```bash
+git clone https://github.com/roldhaa/screenshot-debugger.git
+cd screenshot-debugger
 npm ci
 cp .env.example .env
 ```
 
-Dans `.env`, renseigne `GEMINI_API_KEY` avec une clé créée dans [Google AI Studio](https://aistudio.google.com/apikey). Ne colle pas la clé dans un chat, un commit ou un fichier commité. Le fichier `.env` est ignoré par Git.
+Ouvre `.env` et mets ta clé sur la ligne `GEMINI_API_KEY`. Crée-la dans [Google AI Studio](https://aistudio.google.com/apikey). Ne la colle pas dans un commit, un ticket ou un message.
 
 ```bash
 npm run dev
 ```
 
-Ouvre `http://localhost:3000`.
+Ouvre [http://localhost:3000](http://localhost:3000).
 
-## Variables
+Sans clé, l'interface le dit clairement. Ce n'est pas une analyse.
 
-| Nom | Rôle |
+## Scénario de démonstration
+
+Dans l'application, clique **Charger l'exemple React**, puis **Analyser**.
+
+La capture est [`examples/react-map-undefined/error.png`](examples/react-map-undefined/error.png). Le script bogué appelle `.map()` sur une valeur `undefined`. Le script corrigé utilise `(users ?? []).map(...)`.
+
+```bash
+node examples/react-map-undefined/verify.mjs
+```
+
+Résultat attendu :
+
+```text
+before: TypeError reading map
+after: []
+```
+
+Pour refaire l'appel Gemma depuis la machine locale :
+
+```bash
+npm run prove:gemma
+```
+
+La commande charge `.env` sans afficher la clé. Elle échoue tout de suite si `GEMINI_API_KEY` est vide, sans contacter Google.
+
+## Gemma
+
+Le modèle utilisé est **Gemma 4**, identifiant `gemma-4-26b-a4b-it`. Ce n'est pas un modèle Gemini. La Gemini API est seulement le canal d'accès. Si cet identifiant est introuvable, le serveur essaie `gemma-4-31b-it`. Ce repli n'a pas été observé en production.
+
+Google documente ces deux identifiants, et l'envoi d'image par `files.upload` puis `createPartFromUri`, sur [Run Gemma with the Gemini API](https://ai.google.dev/gemma/docs/core/gemma_on_gemini_api). Le serveur suit ce chemin, puis supprime le fichier envoyé. La fiche du modèle est sur [model card Gemma 4](https://ai.google.dev/gemma/docs/core/model_card_4).
+
+Au plus deux appels fournisseur par analyse. La réflexion interne du modèle est réglée au minimum, et la réponse est courte, pour tenir dans le délai de la passerelle.
+
+## DigitalOcean
+
+L'adresse publique est un Web Service [App Platform](https://docs.digitalocean.com/products/app-platform/). Un site statique ne peut pas garder la clé hors du navigateur. La spec est [`.do/app.yaml`](.do/app.yaml).
+
+| Réglage | Valeur |
 | --- | --- |
-| `GEMINI_API_KEY` | Clé lue uniquement par le serveur. Jamais `NEXT_PUBLIC_`. |
-| `GEMMA_MODEL` | Optionnel. Défaut `gemma-4-26b-a4b-it`. |
-| `DEMO_ACCESS_TOKEN` | Optionnel. S'il est défini, `POST /api/analyze` exige l'en-tête `x-demo-access`. |
+| Build | `npm run build` |
+| Démarrage | `npm start` |
+| Port | `8080` |
+| Région | Toronto |
+| Taille | 1 vCPU partagé, 512 Mio, environ 5 $ US par mois |
 
-`.env.example` ne contient aucune vraie clé.
+DigitalOcean héberge le serveur Next.js. Il n'héberge pas les poids de Gemma. Les étapes et le prix sont dans [`docs/DIGITALOCEAN.md`](docs/DIGITALOCEAN.md).
 
-## Vérification
+## Captures et secrets
+
+| Nom | Où | Rôle |
+| --- | --- | --- |
+| `GEMINI_API_KEY` | `.env` ou secret d'exécution | Clé serveur. Jamais `NEXT_PUBLIC_`. |
+| `GEMMA_MODEL` | optionnel | Défaut `gemma-4-26b-a4b-it`. |
+| `DEMO_ACCESS_TOKEN` | optionnel | S'il est défini, chaque analyse doit envoyer l'en-tête `x-demo-access`. |
+
+`.env` est ignoré par Git. [`.env.example`](.env.example) ne contient pas de vraie clé.
+
+Avant l'envoi, l'interface prévient que la capture et le texte partent chez Google. L'application ne conserve pas les captures. Elle n'écrit pas l'image, le code ni la clé dans ses journaux. Masque les jetons, mots de passe et données personnelles avant de déposer une capture. Les journaux de Google et de l'hébergeur ne sont pas sous le contrôle de ce dépôt.
+
+Formats acceptés : PNG et JPEG, reconnus par leur signature, pas par le nom du fichier. Maximum 2 Mio, 4096 pixels de côté et 8 millions de pixels. Le contexte et le code ensemble ne dépassent pas 15 000 caractères.
+
+## Vérifier le dépôt
 
 ```bash
 npm test
@@ -49,41 +139,21 @@ node examples/react-map-undefined/verify.mjs
 npm run prove:gemma
 ```
 
-`npm test` simule Gemma. `npm run prove:gemma` fait un appel réel et échoue clairement si la clé est absente. `npm run build` exécute aussi la vérification TypeScript de Next.js.
+`npm test` simule Gemma. Un test simulé ne prouve pas un appel réel. `npm run build` inclut la vérification TypeScript de Next.js.
 
-## Architecture
+## Limites connues
 
-Le navigateur envoie la capture et le contexte à `POST /api/analyze`. Le serveur valide l'image, borne la requête, appelle Gemma, valide le JSON, puis renvoie un rapport. Le navigateur affiche ce rapport et peut le copier. Il n'appelle pas Google et n'exécute pas le code proposé.
+- La correction est une proposition. Rien n'est exécuté, et aucun dépôt n'est ouvert.
+- La passerelle publique coupe une analyse vers 20 secondes. Une réponse trop longue échoue. Tu peux réessayer.
+- Google peut répondre 500, ou produire un JSON inutilisable. L'application n'invente pas un rapport à la place.
+- Douze analyses par heure et par processus. Le compteur repart à zéro au redémarrage du conteneur.
+- Le quota et le coût Google dépendent du compte qui possède la clé.
+- Une capture illisible doit donner `unreadable`. Une cause invisible doit donner `needs_context`.
 
-L'appel réel est dans [lib/server/gemma.ts](lib/server/gemma.ts). Le modèle documenté par Google est `gemma-4-26b-a4b-it` (repli `gemma-4-31b-it`), via la Gemini API et le SDK `@google/genai`. Pour une image, le serveur utilise `files.upload` puis `createPartFromUri`, comme dans la [doc Gemma sur la Gemini API](https://ai.google.dev/gemma/docs/core/gemma_on_gemini_api). Le fichier est supprimé ensuite. `gemma-4-26b-a4b-it` accepte le texte et l'image selon le [guide de démarrage Gemma](https://ai.google.dev/gemma/docs/get_started).
+## Licence
 
-## DigitalOcean
+Le code de ce dépôt est sous [MIT](LICENSE), copyright 2026 Harold Tcheuko Wouassi. Cette licence ne couvre pas les paquets npm ni les poids de Gemma.
 
-Le dépôt contient [.do/app.yaml](.do/app.yaml) pour un Web Service App Platform, parce que l'analyse passe par une route serveur. Ce fichier n'a pas été appliqué. Aucune URL publique n'existe.
+Construit pour le Hacktoberfest Hack Day Montréal x AGEEI, le 9 octobre 2026. Cursor, avec le modèle Grok 4.7, a aidé à écrire le dépôt. Next.js, React, Tailwind CSS, Zod, Vitest et `@google/genai` ne sont pas du code original.
 
-La taille prévue est `apps-s-1vcpu-0.5gb` : 1 vCPU partagé, 512 Mio, environ 5 $ US par mois. Le créer dans le tableau de bord lance cette facturation. Les étapes sont dans [docs/DIGITALOCEAN.md](docs/DIGITALOCEAN.md).
-
-`next start` écoute `0.0.0.0` et la variable `PORT`. La spec fixe le port HTTP à 8080. La clé se met dans le tableau de bord, en variable secrète d'exécution, pas dans Git.
-
-## Licence et modèle
-
-Le code de ce dépôt est sous [MIT](LICENSE). Cette licence ne couvre pas les paquets ni les poids de Gemma. La fiche du modèle est sur [ai.google.dev/gemma/docs/core/model_card_4](https://ai.google.dev/gemma/docs/core/model_card_4).
-
-## Confidentialité
-
-La capture, le contexte et le code sont envoyés à Google pour l'analyse. Cette application ne les enregistre pas volontairement. Cela ne décrit pas les journaux de Google ni ceux de l'hébergeur. Masque les jetons, mots de passe et données personnelles avant l'envoi.
-
-## Limites
-
-- Une correction est une proposition. L'application ne l'exécute pas et n'ouvre pas le dépôt.
-- Une capture illisible ou incomplète doit produire `unreadable` ou `needs_context`, pas une certitude inventée.
-- La limite d'analyses en mémoire couvre le processus en cours. Avec un seul conteneur App Platform, cela couvre la démo. Plusieurs conteneurs ne partageraient pas ce compteur.
-- Le quota, le coût et la latence réels dépendent du compte Google. Ils ne sont pas garantis ici.
-
-## Outils utilisés pour développer
-
-Cursor, avec le modèle Grok 4.7, a aidé à écrire ce dépôt pendant le Hacktoberfest Hack Day Montréal x AGEEI, le 9 octobre 2026. Les bibliothèques sont listées dans `package.json`. Next.js, React, Tailwind, Zod, Vitest et `@google/genai` ne sont pas du code original.
-
-## Hackathon
-
-Version de compétition du 9 octobre 2026 : parcours local, validation, rapport structuré, exemple React vérifié à la main, tests simulés, spec DigitalOcean non appliquée. L'appel Gemma réel reste bloqué tant que `GEMINI_API_KEY` est vide. Voir [docs/SUBMISSION.md](docs/SUBMISSION.md) et [PROJECT_STATE.md](PROJECT_STATE.md).
+Les textes de soumission et l'état du jour sont dans [`docs/SUBMISSION.md`](docs/SUBMISSION.md) et [`PROJECT_STATE.md`](PROJECT_STATE.md).
