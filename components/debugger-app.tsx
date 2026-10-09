@@ -6,7 +6,7 @@ import { DEMO_EXAMPLES, type DemoExample } from "@/lib/demo-examples";
 import { LIMITS } from "@/lib/limits";
 import { messageForUnreadableAnalyzeBody, publicErrorMessage } from "@/lib/public-errors";
 import { uploadErrorMessage, validateImageBytes } from "@/lib/validate-upload";
-import { AnalysisReportView } from "@/components/analysis-report";
+import { AnalysisReportView, type WorkshopMode } from "@/components/analysis-report";
 import { ContextForm } from "@/components/context-form";
 import { ScreenshotInput } from "@/components/screenshot-input";
 
@@ -22,9 +22,11 @@ export function DebuggerApp() {
   const [language, setLanguage] = useState("fr");
   const [showDemoToken, setShowDemoToken] = useState(false);
   const [demoToken, setDemoToken] = useState("");
-  const [phase, setPhase] = useState<"idle" | "analyzing" | "error">("idle");
+  const [mode, setMode] = useState<WorkshopMode>("learn");
+  const [phase, setPhase] = useState<"idle" | "analyzing" | "investigating" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [report, setReport] = useState<AnalysisReport | null>(null);
+  const [investigationRound, setInvestigationRound] = useState(0);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const requestId = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
@@ -55,7 +57,7 @@ export function DebuggerApp() {
   }, []);
 
   useEffect(() => {
-    if (phase !== "analyzing") {
+    if (phase !== "analyzing" && phase !== "investigating") {
       return;
     }
     const started = Date.now();
@@ -81,6 +83,7 @@ export function DebuggerApp() {
     setErrorMessage(null);
     setPhase("idle");
     setElapsedSeconds(0);
+    setInvestigationRound(0);
   }
 
   async function selectFile(file: File) {
@@ -134,7 +137,15 @@ export function DebuggerApp() {
   }
 
   const textTooLong = context.length + code.length > LIMITS.maxTextChars;
-  const canAnalyze = Boolean(imageBase64) && !textTooLong && phase !== "analyzing";
+  const busy = phase === "analyzing" || phase === "investigating";
+  const canAnalyze = Boolean(imageBase64) && !textTooLong && !busy;
+
+  function authHeaders(): HeadersInit {
+    return {
+      "content-type": "application/json",
+      ...(demoToken ? { "x-demo-access": demoToken } : {}),
+    };
+  }
 
   async function analyze() {
     if (!imageBase64 || !canAnalyze) {
@@ -148,6 +159,7 @@ export function DebuggerApp() {
     setPhase("analyzing");
     setErrorMessage(null);
     setReport(null);
+    setInvestigationRound(0);
     setElapsedSeconds(0);
     if (demoToken) {
       sessionStorage.setItem("screenshot-debugger-demo-access", demoToken);
@@ -156,10 +168,7 @@ export function DebuggerApp() {
     try {
       const response = await fetch("/api/analyze", {
         method: "POST",
-        headers: {
-          "content-type": "application/json",
-          ...(demoToken ? { "x-demo-access": demoToken } : {}),
-        },
+        headers: authHeaders(),
         body: JSON.stringify({
           imageBase64,
           framework,
@@ -169,40 +178,104 @@ export function DebuggerApp() {
         }),
         signal: controller.signal,
       });
-      const raw = await response.text();
-      let payload: { ok: true; report: AnalysisReport } | { ok: false; error?: ApiError };
-      try {
-        payload = JSON.parse(raw) as typeof payload;
-      } catch {
-        if (id !== requestId.current) {
-          return;
-        }
-        setPhase("error");
-        setErrorMessage(messageForUnreadableAnalyzeBody(response.status));
-        return;
-      }
-      if (id !== requestId.current) {
-        return;
-      }
-      if (!payload.ok) {
-        setPhase("error");
-        setErrorMessage(payload.error?.message ?? publicErrorMessage.unavailable);
-        return;
-      }
-      setReport(payload.report);
-      setPhase("idle");
+      await applyReportResponse(response, id);
     } catch (error) {
-      if (id !== requestId.current) {
-        return;
+      handleFetchError(error, id);
+    }
+  }
+
+  async function investigate(answer: string) {
+    if (!report || investigationRound >= 2 || busy) {
+      return;
+    }
+    const id = requestId.current + 1;
+    requestId.current = id;
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setPhase("investigating");
+    setErrorMessage(null);
+    setElapsedSeconds(0);
+
+    const priorReport = {
+      status: report.status,
+      observedError: report.observedError,
+      evidence: report.evidence,
+      hypotheses: report.hypotheses,
+      explanation: report.explanation,
+      proposedFix: report.proposedFix,
+      suggestedCode: report.suggestedCode,
+      verificationSteps: report.verificationSteps,
+      missingContext: report.missingContext,
+      limitations: report.limitations,
+      investigationQuestion: report.investigationQuestion,
+      learn: report.learn,
+      learnedPrinciple: report.learnedPrinciple,
+      prevention: report.prevention,
+      changeNotes: report.changeNotes,
+    };
+
+    try {
+      const response = await fetch("/api/investigate", {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({
+          userAnswer: answer,
+          framework,
+          context,
+          code,
+          language,
+          round: (investigationRound + 1) as 1 | 2,
+          priorReport,
+        }),
+        signal: controller.signal,
+      });
+      const ok = await applyReportResponse(response, id);
+      if (ok && id === requestId.current) {
+        setInvestigationRound((value) => value + 1);
       }
-      if (error instanceof DOMException && error.name === "AbortError") {
-        setPhase("error");
-        setErrorMessage(publicErrorMessage.cancelled);
-        return;
+    } catch (error) {
+      handleFetchError(error, id);
+    }
+  }
+
+  async function applyReportResponse(response: Response, id: number): Promise<boolean> {
+    const raw = await response.text();
+    let payload: { ok: true; report: AnalysisReport } | { ok: false; error?: ApiError };
+    try {
+      payload = JSON.parse(raw) as typeof payload;
+    } catch {
+      if (id !== requestId.current) {
+        return false;
       }
       setPhase("error");
-      setErrorMessage("La connexion a échoué. Tu peux réessayer.");
+      setErrorMessage(messageForUnreadableAnalyzeBody(response.status));
+      return false;
     }
+    if (id !== requestId.current) {
+      return false;
+    }
+    if (!payload.ok) {
+      setPhase("error");
+      setErrorMessage(payload.error?.message ?? publicErrorMessage.unavailable);
+      return false;
+    }
+    setReport(payload.report);
+    setPhase("idle");
+    return true;
+  }
+
+  function handleFetchError(error: unknown, id: number) {
+    if (id !== requestId.current) {
+      return;
+    }
+    if (error instanceof DOMException && error.name === "AbortError") {
+      setPhase("error");
+      setErrorMessage(publicErrorMessage.cancelled);
+      return;
+    }
+    setPhase("error");
+    setErrorMessage("La connexion a échoué. Tu peux réessayer.");
   }
 
   function cancel() {
@@ -213,11 +286,39 @@ export function DebuggerApp() {
     <div className="min-h-full bg-zinc-100 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50">
       <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-5">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">Atelier de débogage guidé</p>
           <h1 className="text-2xl font-semibold tracking-tight">Screenshot Debugger</h1>
-          <p className="max-w-3xl text-sm text-zinc-700 dark:text-zinc-300">
-            Pour les étudiants en JavaScript, TypeScript et React : la capture part vers Gemma 4. La
-            correction est proposée, jamais exécutée.
+          <p className="max-w-3xl text-base font-medium text-zinc-900 dark:text-zinc-100">
+            Comprends ton bug. Apprends à le résoudre.
           </p>
+          <p className="max-w-3xl text-sm text-zinc-700 dark:text-zinc-300">
+            Transforme une capture d&apos;erreur en enquête guidée, correction expliquée et connaissance
+            réutilisable. Gemma 4 lit la capture ; la correction n&apos;est jamais exécutée.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="Mode d'atelier">
+            <button
+              type="button"
+              className={`min-h-11 rounded-md px-3 text-sm ${
+                mode === "learn"
+                  ? "bg-blue-700 text-white"
+                  : "border border-zinc-300 dark:border-zinc-700"
+              }`}
+              onClick={() => setMode("learn")}
+            >
+              Apprendre
+            </button>
+            <button
+              type="button"
+              className={`min-h-11 rounded-md px-3 text-sm ${
+                mode === "direct"
+                  ? "bg-blue-700 text-white"
+                  : "border border-zinc-300 dark:border-zinc-700"
+              }`}
+              onClick={() => setMode("direct")}
+            >
+              Diagnostic direct
+            </button>
+          </div>
         </div>
       </header>
       <main className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-6 lg:grid-cols-2">
@@ -272,7 +373,7 @@ export function DebuggerApp() {
             <button
               type="button"
               className="min-h-11 rounded-md border border-zinc-300 px-4 text-sm disabled:opacity-50 dark:border-zinc-700"
-              disabled={phase !== "analyzing"}
+              disabled={!busy}
               onClick={cancel}
             >
               Annuler
@@ -288,17 +389,32 @@ export function DebuggerApp() {
                 Réessayer
               </button>
             ) : null}
-            <button type="button" className="min-h-11 rounded-md border border-zinc-300 px-4 text-sm dark:border-zinc-700" onClick={clearSession}>
+            <button
+              type="button"
+              className="min-h-11 rounded-md border border-zinc-300 px-4 text-sm dark:border-zinc-700"
+              onClick={clearSession}
+            >
               Effacer
             </button>
           </div>
-          <p className="text-xs text-zinc-600 dark:text-zinc-400">PNG ou JPEG, 2 Mio maximum.</p>
+          <p className="text-xs text-zinc-600 dark:text-zinc-400">
+            PNG ou JPEG, 2 Mio maximum. Les éléments envoyés partent chez Google pour l&apos;analyse.
+            Masque mots de passe et jetons.
+          </p>
         </section>
         <AnalysisReportView
           report={report}
           analyzing={phase === "analyzing"}
+          investigating={phase === "investigating"}
+          investigationRound={investigationRound}
           elapsedSeconds={elapsedSeconds}
           errorMessage={errorMessage}
+          mode={mode}
+          userCode={code}
+          framework={framework}
+          onInvestigate={(value) => {
+            void investigate(value);
+          }}
         />
       </main>
     </div>

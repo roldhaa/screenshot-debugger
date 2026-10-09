@@ -1,6 +1,6 @@
 # Soumission
 
-La confirmation dans OrganizerHQ reste à faire par Harold. L'appel Gemma réel a réussi sur l'URL publique avec `gemma-4-26b-a4b-it`.
+La confirmation dans OrganizerHQ reste à faire par Harold.
 
 ## Champs prêts
 
@@ -11,27 +11,34 @@ La confirmation dans OrganizerHQ reste à faire par Harold. L'appel Gemma réel 
 
 ## Description
 
-Un étudiant voit une erreur dans un terminal ou une console et ne sait pas quoi vérifier. Screenshot Debugger envoie la capture, et éventuellement un extrait de code, à Gemma 4. Le rapport sépare l'erreur observée, les hypothèses, une correction proposée et les étapes pour la vérifier. L'application n'exécute pas le correctif. Un Agent Skill conforme au standard ouvert et un harness original (`diagnose` + `gemma`) encapsulent le même pipeline. Le code est sous licence MIT.
+Screenshot Debugger est un atelier de débogage guidé pour étudiants en JavaScript, TypeScript et React. Une capture part vers Gemma 4. Le parcours sépare indices et hypothèses, pose une question d'enquête, propose une correction expliquée avec diff, et exporte une fiche Markdown réutilisable. L'application n'exécute pas le correctif. Un Agent Skill et un harness original encapsulent le pipeline. Licence MIT.
 
-## Catégories à cocher
+## Catégories
 
 - Best Use of Gemma 4
 - Best Open-Source AI Project
 
-## Preuves à montrer
+## Preuves
 
 | Sujet | Où |
 | --- | --- |
-| Gemma open-weight | `lib/server/gemma.ts`, `npm run prove:gemma` / `npm run harness:demo` |
-| Agent Skill | `.agents/skills/screenshot-debugger/SKILL.md` ([specification](https://agentskills.io/specification)) |
+| Gemma open-weight | `lib/server/gemma.ts`, `npm run harness:demo` |
+| Agent Skill | `.agents/skills/screenshot-debugger/SKILL.md` |
 | Model harness | `docs/HARNESS.md`, `lib/server/diagnose.ts` |
-| Image | la capture est une partie de la requête, pas un texte de remplacement |
-| Open source | dépôt public et `LICENSE` |
-| DigitalOcean | App Platform Web Service, URL publique |
-| Fonctionnement | parcours UI et `examples/react-map-undefined/verify.mjs` |
-| Sécurité | `docs/SECURITY.md` |
-| Limite honnête | pas d'exécution du correctif, 12 analyses par heure dans le conteneur, passerelle vers 20 secondes |
+| Atelier pédagogique | modes Apprendre / Direct, `POST /api/investigate`, fiche |
+| DigitalOcean | App Platform Web Service |
+| Sécurité | clé serveur, Origin allowlist, pas d'exécution |
 
-## Appel réel observé
+## Terminé / reporté
 
-Modèle `gemma-4-26b-a4b-it`, mode `live`, environ 9 secondes. Erreur observée : `TypeError: Cannot read properties of undefined (reading 'map')`. URL : https://screenshot-debugger-qzyjc.ondigitalocean.app.
+| Élément | État |
+| --- | --- |
+| Analyse live + modes Apprendre / Direct | Terminé |
+| Enquête interactive | Terminé |
+| Diff expliqué + fiche Markdown | Terminé |
+| Annotations pixel | Reporté |
+| Mini défi de transfert | Reporté |
+
+## Phrase jury
+
+Un chatbot peut expliquer une erreur si on lui pose les bonnes questions. Screenshot Debugger structure ce travail pour les étudiants : indices visibles, enquête guidée, correction expliquée, et une fiche réutilisable — l'esprit de Stack Overflow, sans prétendre être Stack Overflow.

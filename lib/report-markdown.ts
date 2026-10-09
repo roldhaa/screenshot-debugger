@@ -17,7 +17,20 @@ export function reportToMarkdown(report: AnalysisReport): string {
     listSection("Indices", report.evidence),
     hypothesesSection(report.hypotheses),
     section("Explication", report.explanation),
+    report.investigationQuestion
+      ? [
+          `## Question d'enquête`,
+          ``,
+          report.investigationQuestion.prompt,
+          ``,
+          `Pourquoi : ${report.investigationQuestion.why}`,
+          ``,
+        ].join("\n")
+      : "",
+    section("Principe appris", report.learnedPrinciple),
+    listSection("Prévention", report.prevention),
     section("Correction proposée", report.proposedFix),
+    listSection("Notes sur le changement", report.changeNotes),
     codeSection(report.suggestedCode),
     stepsSection(report.verificationSteps),
     listSection("Contexte manquant", report.missingContext),
@@ -30,7 +43,7 @@ export function reportToMarkdown(report: AnalysisReport): string {
     ``,
     `Cette correction est une proposition. L'application ne l'a pas exécutée.`,
   ];
-  return lines.join("\n");
+  return lines.filter((line) => line !== "").join("\n");
 }
 
 export function issueDraftMarkdown(report: AnalysisReport): string {
@@ -44,8 +57,9 @@ function section(title: string, body: string | null): string {
   return [`## ${title}`, ``, body ?? "Non fourni.", ``].join("\n");
 }
 
-function listSection(title: string, items: string[]): string {
-  const body = items.length > 0 ? items.map((item) => `- ${item}`).join("\n") : "Non fourni.";
+function listSection(title: string, items: string[] | undefined): string {
+  const list = items ?? [];
+  const body = list.length > 0 ? list.map((item) => `- ${item}`).join("\n") : "Non fourni.";
   return [`## ${title}`, ``, body, ``].join("\n");
 }
 
