@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { LIMITS } from "../lib/limits";
+import { ProviderError } from "../lib/server/diagnose";
 import { handleAnalyze } from "../lib/server/handle-analyze";
-import { resetRateLimitForTests } from "../lib/server/rate-limit";
-import { acquireAnalysisSlot } from "../lib/server/rate-limit";
+import { acquireAnalysisSlot, resetRateLimitForTests } from "../lib/server/rate-limit";
 
 const PNG_1X1 =
   "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
@@ -109,6 +109,32 @@ describe("handleAnalyze", () => {
     });
     expect(blocked.status).toBe(429);
     expect(calls).toBe(0);
+  });
+
+  it("returns hostile model text as JSON data", async () => {
+    const hostile = JSON.parse(validJson) as Record<string, unknown>;
+    hostile.explanation = '<script>alert(1)</script> [lien](javascript:alert(1))';
+    hostile.suggestedCode = "<img src=x onerror=alert(1)>";
+    const response = await handleAnalyze(request(input), {
+      caller: async () => JSON.stringify(hostile),
+    });
+    const text = await response.text();
+    expect(response.headers.get("content-type")).toContain("application/json");
+    expect(text).toContain("<script>alert(1)</script>");
+    expect(text).toContain("javascript:alert(1)");
+    expect(text.startsWith("{")).toBe(true);
+  });
+
+  it("maps a timeout without including provider details", async () => {
+    const response = await handleAnalyze(request(input), {
+      caller: async () => {
+        throw new ProviderError("timeout");
+      },
+    });
+    expect(response.status).toBe(408);
+    const payload = await response.json();
+    expect(payload.error.message).toBe("L'analyse a dépassé le délai. Tu peux réessayer.");
+    expect(JSON.stringify(payload)).not.toContain("stack");
   });
 
   it("reports a missing key without calling out to the network helper", async () => {
