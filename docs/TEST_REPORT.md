@@ -59,5 +59,7 @@ Le 9 octobre 2026, sur https://screenshot-debugger-qzyjc.ondigitalocean.app :
 | Capture React complète, avant le raccourcissement | 504 de la passerelle vers 20 s |
 | Capture React complète, commit `b383da3` | 200 en 9 s. Statut `diagnosed`, modèle `gemma-4-26b-a4b-it`, mode `live`. Erreur observée : `TypeError: Cannot read properties of undefined (reading 'map')`. |
 | Même capture dans le navigateur | Le rapport affiche l'erreur, une hypothèse, la correction `(users \|\| []).map(...)` et une vérification. |
+| Capture React, anglais | 200 en 9 s. Statut `diagnosed`, même `TypeError` sur `map`, correction présente. |
+| Capture React, français | 200 en 9 s une fois, statut `diagnosed`. Des essais suivants ont reçu 504 de la passerelle vers 32 s. |
 
-L'appel d'un pixel et la capture React sont tous les deux des réponses Gemma réelles. Le correctif n'est pas exécuté par l'application.
+L'appel d'un pixel et la capture React sont des réponses Gemma réelles. Le correctif n'est pas exécuté. Un 502 ou 504 HTML de la passerelle affiche le message de délai. Un 500 Google rapide peut être réessayé une fois si moins de 8 secondes se sont écoulées.
