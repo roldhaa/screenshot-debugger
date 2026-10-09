@@ -20,3 +20,10 @@ export const publicErrorMessage = {
 } as const;
 
 export type PublicErrorCode = keyof typeof publicErrorMessage;
+
+/** An HTML page from the gateway, including 502 and 504, is a deadline, not a broken connection. */
+export function messageForUnreadableAnalyzeBody(status: number): string {
+  return status === 502 || status === 504 || status !== 200
+    ? publicErrorMessage.timeout
+    : publicErrorMessage.unavailable;
+}

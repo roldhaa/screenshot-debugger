@@ -13,8 +13,8 @@ Estimations indicatives, pas des garanties. Ordre : P0 restant, puis P1, puis P2
 | Route serveur | terminé | tests de `handleAnalyze` |
 | Interface | terminé | parcours navigateur local |
 | Exemple React avant/après | terminé | `node examples/react-map-undefined/verify.mjs` |
-| Appel Gemma réel | bloqué | `npm run prove:gemma` dès que `.env` contient la clé |
-| Déploiement DigitalOcean | préparé, non créé | Spec `.do/app.yaml`. Le service coûte environ 5 $ US par mois. URL réelle encore absente. |
+| Appel Gemma réel | terminé | `gemma-4-26b-a4b-it`, mode `live`, capture React diagnostiquée en 9 s sur l'URL publique |
+| Déploiement DigitalOcean | en ligne | https://screenshot-debugger-qzyjc.ondigitalocean.app, environ 5 $ US par mois |
 | Textes de soumission | terminé | `docs/SUBMISSION.md`, confirmation du formulaire encore à faire |
 
 ## P1
@@ -29,3 +29,5 @@ Estimations indicatives, pas des garanties. Ordre : P0 restant, puis P1, puis P2
 ## P2
 
 Compte, historique, GitHub OAuth, lecture de dépôt, PR automatique, shell, MCP, RAG, modèle local, application native, paiements. À reprendre après le hackathon, pas à la place du noyau.
+
+Limites laissées volontairement : la passerelle coupe vers 20 secondes, le repli `gemma-4-31b-it` n'est appelé qu'en cas de 404, et les 12 analyses par heure restent dans la mémoire du conteneur. Pas de base payante pour ce compteur.

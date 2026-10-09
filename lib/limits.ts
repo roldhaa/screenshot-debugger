@@ -7,6 +7,7 @@ export const LIMITS = {
   maxBase64Chars: 3_000_000,
   maxContentLength: 4_000_000,
   requestTimeoutMs: 30_000,
+  fastRetryMs: 8_000,
   maxProviderCalls: 2,
   maxSectionChars: 4_000,
   rateLimitWindowMs: 60 * 60 * 1000,

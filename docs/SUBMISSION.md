@@ -1,6 +1,6 @@
 # Soumission
 
-La confirmation dans OrganizerHQ reste à faire par Harold. Ne pas déclarer les catégories validées tant que l'appel Gemma réel n'a pas réussi.
+La confirmation dans OrganizerHQ reste à faire par Harold. L'appel Gemma réel a réussi sur l'URL publique avec `gemma-4-26b-a4b-it`.
 
 ## Champs prêts
 
@@ -27,8 +27,8 @@ Un étudiant voit une erreur dans un terminal ou une console et ne sait pas quoi
 | Open source | dépôt public et `LICENSE` |
 | Fonctionnement | parcours local et `examples/react-map-undefined/verify.mjs` |
 | Sécurité | `docs/SECURITY.md` |
-| Limite honnête | pas d'exécution du correctif, limite de débit par processus, appel live encore bloqué sans clé |
+| Limite honnête | pas d'exécution du correctif, 12 analyses par heure dans le conteneur, passerelle vers 20 secondes |
 
-## Après l'appel réel
+## Appel réel observé
 
-Remplacer la phrase sur le blocage par le modèle effectif, la durée observée et l'URL si elle existe. Ne pas inventer ces valeurs avant de les avoir vues.
+Modèle `gemma-4-26b-a4b-it`, mode `live`, environ 9 secondes. Erreur observée : `TypeError: Cannot read properties of undefined (reading 'map')`. URL : https://screenshot-debugger-qzyjc.ondigitalocean.app.

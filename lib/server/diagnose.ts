@@ -103,7 +103,7 @@ export async function diagnose(
     } else if (mapped.kind === "model_not_found" && fallback !== primary) {
       modelUsed = fallback;
       text = await invoke(diagnoseCall(fallback, true));
-    } else if (mapped.kind === "transient") {
+    } else if (mapped.kind === "transient" && now() - started < LIMITS.fastRetryMs) {
       text = await invoke(diagnoseCall(primary, true));
     } else {
       throw mapped;

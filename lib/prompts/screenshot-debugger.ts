@@ -1,6 +1,6 @@
 import type { AnalyzeInput } from "@/lib/analysis-schema";
 
-export const PROMPT_VERSION = "2026-10-09.2";
+export const PROMPT_VERSION = "2026-10-09.3";
 export const PRIMARY_MODEL = "gemma-4-26b-a4b-it";
 export const FALLBACK_MODEL = "gemma-4-31b-it";
 
@@ -27,7 +27,8 @@ Tu ne dois pas :
 - Affirmer qu'un paquet s'installe sous le même nom qu'un import sans le présenter comme une hypothèse à vérifier.
 - Recommander une commande destructive sans alternative plus sûre.
 - Donner un score de confiance chiffré.
-- Dépasser une phrase courte par champ, ni plus de deux éléments par liste. La passerelle coupe la requête à 20 secondes.
+- Dépasser une phrase courte par champ, ni plus de deux éléments par liste.
+- Écrire une phrase grammaticalement incorrecte ou inventer un mot. Chaque champ est une phrase correcte.
 
 Choisis le statut :
 - unreadable si l'image est illisible.
@@ -116,12 +117,20 @@ export function buildUserPrompt(input: Pick<AnalyzeInput, "framework" | "context
   ].join("\n");
 }
 
+export function clipRepeatedText(text: string): string {
+  const match = text.match(/(.{8,}?)\1{2,}/s);
+  if (!match || match.index === undefined) {
+    return text;
+  }
+  return text.slice(0, match.index).trimEnd();
+}
+
 export function buildRepairPrompt(invalidText: string): string {
   return [
     "Le texte suivant devait être uniquement un objet JSON conforme au schéma. Il est vide, tronqué ou non conforme.",
     "Réécris seulement le JSON. N'ajoute aucun fait absent de ce texte. N'inclus pas la capture.",
     "<<<INVALID",
-    invalidText.slice(0, 8_000),
+    clipRepeatedText(invalidText).slice(0, 8_000),
     "INVALID>>>",
   ].join("\n");
 }

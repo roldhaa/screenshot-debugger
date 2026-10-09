@@ -61,7 +61,7 @@ export function mapProviderError(error: unknown): ProviderError {
     return new ProviderError("invalid");
   }
   if (status !== undefined && status >= 500) {
-    return new ProviderError("unavailable");
+    return new ProviderError("transient");
   }
   if (/fetch failed|network|ECONNRESET|ETIMEDOUT/i.test(message)) {
     return new ProviderError("transient");

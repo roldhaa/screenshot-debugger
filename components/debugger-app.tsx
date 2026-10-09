@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { AnalysisReport } from "@/lib/analysis-schema";
 import { LIMITS } from "@/lib/limits";
-import { publicErrorMessage } from "@/lib/public-errors";
+import { messageForUnreadableAnalyzeBody, publicErrorMessage } from "@/lib/public-errors";
 import { uploadErrorMessage, validateImageBytes } from "@/lib/validate-upload";
 import { AnalysisReportView } from "@/components/analysis-report";
 import { ContextForm } from "@/components/context-form";
@@ -168,9 +168,18 @@ export function DebuggerApp() {
         }),
         signal: controller.signal,
       });
-      const payload = (await response.json()) as
-        | { ok: true; report: AnalysisReport }
-        | { ok: false; error?: ApiError };
+      const raw = await response.text();
+      let payload: { ok: true; report: AnalysisReport } | { ok: false; error?: ApiError };
+      try {
+        payload = JSON.parse(raw) as typeof payload;
+      } catch {
+        if (id !== requestId.current) {
+          return;
+        }
+        setPhase("error");
+        setErrorMessage(messageForUnreadableAnalyzeBody(response.status));
+        return;
+      }
       if (id !== requestId.current) {
         return;
       }
@@ -207,7 +216,8 @@ export function DebuggerApp() {
           <p className="max-w-3xl text-sm text-zinc-700 dark:text-zinc-300">
             Pour les étudiants en JavaScript, TypeScript et React. La capture et le contexte sont envoyés à
             Google pour l&apos;analyse. Masque les jetons, mots de passe et données personnelles. L&apos;application
-            ne vérifie pas le code et n&apos;exécute pas la correction.
+            ne vérifie pas le code et n&apos;exécute pas la correction. Cette instance accepte 12 analyses par
+            heure. Le compteur repart à zéro si le conteneur redémarre.
           </p>
         </div>
       </header>
