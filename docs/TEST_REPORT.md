@@ -42,7 +42,7 @@ Le rapport complet n'a pas été affiché avec une réponse Gemma réelle.
 
 ## Adresse publique
 
-Le 9 octobre 2026, après le déploiement de `6157925`, sur https://screenshot-debugger-qzyjc.ondigitalocean.app :
+Le 9 octobre 2026, sur https://screenshot-debugger-qzyjc.ondigitalocean.app :
 
 | Essai | Résultat |
 | --- | --- |
@@ -56,7 +56,8 @@ Le 9 octobre 2026, après le déploiement de `6157925`, sur https://screenshot-d
 | Texte au-dessus de 15 000 caractères | 400, `text_too_long` |
 | Corps au-dessus de 4 Mio | 413, `payload_too_large` |
 | PNG d'un pixel | 200 en 7 s. Modèle `gemma-4-26b-a4b-it`, mode `live`, statut `unreadable` |
-| Capture React complète, deux essais API | 504 de la passerelle à 21 s, puis 408 `cancelled` à 31 s |
-| Même capture dans le navigateur | « La connexion a échoué. Tu peux réessayer. » |
+| Capture React complète, avant le raccourcissement | 504 de la passerelle vers 20 s |
+| Capture React complète, commit `b383da3` | 200 en 9 s. Statut `diagnosed`, modèle `gemma-4-26b-a4b-it`, mode `live`. Erreur observée : `TypeError: Cannot read properties of undefined (reading 'map')`. |
+| Même capture dans le navigateur | Le rapport affiche l'erreur, une hypothèse, la correction `(users \|\| []).map(...)` et une vérification. |
 
-L'appel d'un pixel prouve que Gemma répond sur le serveur. La capture de démonstration n'a pas produit de diagnostic dans le délai de 30 secondes.
+L'appel d'un pixel et la capture React sont tous les deux des réponses Gemma réelles. Le correctif n'est pas exécuté par l'application.

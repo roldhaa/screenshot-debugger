@@ -38,13 +38,13 @@ La doc d'appel est https://ai.google.dev/gemma/docs/core/gemma_on_gemini_api
 
 ## Déploiement
 
-L'application est en ligne : https://screenshot-debugger-qzyjc.ondigitalocean.app. Le service coûte 5 $ US par mois. Le correctif d'hôte est déployé : une origine étrangère reçoit 403, et la même origine reçoit la validation du fichier. La capture React complète n'a pas encore donné de rapport dans le délai.
+L'application est en ligne : https://screenshot-debugger-qzyjc.ondigitalocean.app. Le service coûte 5 $ US par mois. La capture React publique a produit un diagnostic live de `gemma-4-26b-a4b-it` en 9 secondes.
 
 DevRelay n'est pas disponible dans les outils de cette session. Aucune offre n'a été consultée, publiée ou réclamée.
 
 ## Prochaine action
 
-Obtenir un rapport Gemma sur la capture React publique avant de cocher les catégories. Le détail des essais est dans `docs/TEST_REPORT.md`.
+Montrer le parcours public, puis soumettre. Le détail des essais est dans `docs/TEST_REPORT.md`.
 
 ## Échéance
 
