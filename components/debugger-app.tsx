@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { AnalysisReport } from "@/lib/analysis-schema";
+import { DEMO_EXAMPLES, type DemoExample } from "@/lib/demo-examples";
 import { LIMITS } from "@/lib/limits";
 import { messageForUnreadableAnalyzeBody, publicErrorMessage } from "@/lib/public-errors";
 import { uploadErrorMessage, validateImageBytes } from "@/lib/validate-upload";
@@ -102,8 +103,8 @@ export function DebuggerApp() {
     replacePreview(null);
   }
 
-  async function loadExample() {
-    const response = await fetch("/fixtures/react-map-error.png");
+  async function loadDemoExample(example: DemoExample) {
+    const response = await fetch(example.fixturePath);
     if (!response.ok) {
       setFileError("L'exemple public est introuvable.");
       return;
@@ -118,10 +119,10 @@ export function DebuggerApp() {
     setFileError(null);
     setImageBase64(bytesToBase64(bytes));
     replacePreview(URL.createObjectURL(new Blob([bytes], { type: validation.mimeType })));
-    setFramework("react");
+    setFramework(example.framework);
     setLanguage("fr");
-    setContext("J'affiche les noms au premier rendu, avant que la liste soit chargée.");
-    setCode("function renderNames(users) {\n  return users.map((user) => user.name);\n}");
+    setContext(example.context);
+    setCode(example.code);
   }
 
   function clearSession() {
@@ -245,15 +246,20 @@ export function DebuggerApp() {
             onLanguage={setLanguage}
             onDemoToken={setDemoToken}
           />
-          <button
-            type="button"
-            className="min-h-11 self-start rounded-md border border-zinc-300 px-3 text-sm dark:border-zinc-700"
-            onClick={() => {
-              void loadExample();
-            }}
-          >
-            Charger l&apos;exemple React
-          </button>
+          <div className="flex flex-wrap gap-2">
+            {DEMO_EXAMPLES.map((example) => (
+              <button
+                key={example.id}
+                type="button"
+                className="min-h-11 rounded-md border border-zinc-300 px-3 text-sm dark:border-zinc-700"
+                onClick={() => {
+                  void loadDemoExample(example);
+                }}
+              >
+                {example.label}
+              </button>
+            ))}
+          </div>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
