@@ -139,6 +139,14 @@ function ReportBody({
         </span>
       </div>
 
+      {investigationRound > 0 ? (
+        <p className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-950 dark:border-emerald-900 dark:bg-emerald-950 dark:text-emerald-100">
+          Diagnostic mis à jour après ta réponse (tour {investigationRound} sur 2). Relis surtout
+          les hypothèses, l&apos;explication et la correction — Gemma les a réévalués sans renvoyer
+          l&apos;image.
+        </p>
+      ) : null}
+
       <ProminentField title="Erreur observée" value={report.observedError} />
       <NumberedEvidence items={report.evidence} />
 
@@ -225,7 +233,7 @@ function ReportBody({
               type="button"
               className="min-h-11 rounded-md border border-zinc-300 px-3 text-sm dark:border-zinc-600"
               disabled={investigating}
-              onClick={() => onInvestigate("Je ne sais pas.")}
+              onClick={() => setAnswer("Je ne sais pas")}
             >
               Je ne sais pas
             </button>
