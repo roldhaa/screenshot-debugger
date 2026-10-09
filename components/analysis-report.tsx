@@ -29,8 +29,8 @@ export function AnalysisReportView({ report, elapsedSeconds, analyzing, errorMes
       <h2 className="text-lg font-semibold">Résultat</h2>
       {analyzing ? (
         <p className="rounded-md border border-blue-200 bg-blue-50 p-3 text-sm text-blue-950 dark:border-blue-900 dark:bg-blue-950 dark:text-blue-100">
-          Analyse en cours. L&apos;image et le texte sont envoyés à Google. Temps écoulé : {elapsedSeconds} s.
-          Ce compteur ne représente pas une progression interne du modèle.
+          Analyse en cours avec <span className="font-semibold">Gemma 4 · gemma-4-26b-a4b-it</span>. Temps
+          écoulé : {elapsedSeconds} s. Ce compteur n&apos;est pas une barre de progression du modèle.
         </p>
       ) : null}
       {errorMessage ? (
@@ -43,8 +43,15 @@ export function AnalysisReportView({ report, elapsedSeconds, analyzing, errorMes
       ) : null}
       {report ? (
         <article className="flex min-w-0 flex-col gap-4 rounded-md border border-zinc-300 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
-          <p className="text-sm font-semibold">{statusLabel[report.status]}</p>
-          <Field title="Erreur observée" value={report.observedError} />
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-base font-semibold">{statusLabel[report.status]}</p>
+            {report.metadata.mode === "live" ? (
+              <span className="rounded-full border border-emerald-300 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950 dark:text-emerald-100">
+                live
+              </span>
+            ) : null}
+          </div>
+          <ProminentField title="Erreur observée" value={report.observedError} />
           <List title="Indices" items={report.evidence} />
           <div>
             <h3 className="text-sm font-medium">Hypothèses</h3>
@@ -63,9 +70,9 @@ export function AnalysisReportView({ report, elapsedSeconds, analyzing, errorMes
             )}
           </div>
           <Field title="Explication" value={report.explanation} />
-          <Field title="Correction proposée" value={report.proposedFix} />
+          <ProminentField title="Correction proposée" value={report.proposedFix} />
           <div>
-            <h3 className="text-sm font-medium">Code proposé</h3>
+            <h3 className="text-base font-semibold">Code proposé</h3>
             {report.suggestedCode ? (
               <pre className="mt-2 max-w-full overflow-x-auto rounded-md bg-zinc-950 p-3 text-sm text-zinc-50">
                 <code>{report.suggestedCode}</code>
@@ -114,6 +121,15 @@ export function AnalysisReportView({ report, elapsedSeconds, analyzing, errorMes
         </article>
       ) : null}
     </section>
+  );
+}
+
+function ProminentField({ title, value }: { title: string; value: string | null }) {
+  return (
+    <div className="rounded-md border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-700 dark:bg-zinc-950">
+      <h3 className="text-base font-semibold">{title}</h3>
+      <p className="mt-1 whitespace-pre-wrap text-base">{value ?? "Non fourni."}</p>
+    </div>
   );
 }
 

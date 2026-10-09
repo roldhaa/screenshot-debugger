@@ -12,7 +12,8 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "prove:gemma": "node scripts/prove-gemma.mjs"
+    "prove:gemma": "node scripts/prove-gemma.mjs",
+    "harness:demo": "node scripts/run-harness.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.28.0",

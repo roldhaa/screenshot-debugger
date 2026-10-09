@@ -16,6 +16,8 @@ Estimations indicatives, pas des garanties. Ordre : P0 restant, puis P1, puis P2
 | Appel Gemma réel | terminé | `gemma-4-26b-a4b-it`, mode `live`, capture React diagnostiquée en 9 s sur l'URL publique |
 | Déploiement DigitalOcean | en ligne | https://screenshot-debugger-qzyjc.ondigitalocean.app, environ 5 $ US par mois |
 | Textes de soumission | terminé | `docs/SUBMISSION.md`, confirmation du formulaire encore à faire |
+| Agent Skill | terminé | `.agents/skills/screenshot-debugger/SKILL.md` |
+| Model harness CLI | terminé | `npm run harness:demo`, `docs/HARNESS.md` |
 
 ## P1
 
@@ -24,7 +26,7 @@ Estimations indicatives, pas des garanties. Ordre : P0 restant, puis P1, puis P2
 | Copie du rapport et brouillon d'issue | terminé | boutons présents, export sans HTML exécuté |
 | Durée réelle dans les métadonnées | terminé | champ `durationMs` rempli par le serveur |
 | Français et anglais | terminé | sélecteur envoyé au prompt |
-| Autres exemples synthétiques | à faire | seulement si le P0 live est prouvé |
+| Captures de démo | terminé | `examples/demo-captures/` + 3 boutons UI |
 
 ## P2
 

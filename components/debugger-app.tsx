@@ -215,10 +215,8 @@ export function DebuggerApp() {
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-5">
           <h1 className="text-2xl font-semibold tracking-tight">Screenshot Debugger</h1>
           <p className="max-w-3xl text-sm text-zinc-700 dark:text-zinc-300">
-            Pour les étudiants en JavaScript, TypeScript et React. La capture et le contexte sont envoyés à
-            Google pour l&apos;analyse. Masque les jetons, mots de passe et données personnelles. L&apos;application
-            ne vérifie pas le code et n&apos;exécute pas la correction. Cette instance accepte 12 analyses par
-            heure. Le compteur repart à zéro si le conteneur redémarre.
+            Pour les étudiants en JavaScript, TypeScript et React : la capture part vers Gemma 4. La
+            correction est proposée, jamais exécutée.
           </p>
         </div>
       </header>
