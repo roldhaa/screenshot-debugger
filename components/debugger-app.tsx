@@ -3,6 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import type { AnalysisReport } from "@/lib/analysis-schema";
 import { DEMO_EXAMPLES, type DemoExample } from "@/lib/demo-examples";
+import {
+  canAcceptInvestigationAnswer,
+  normalizeInvestigationAnswer,
+} from "@/lib/investigation-gate";
 import { LIMITS } from "@/lib/limits";
 import { messageForUnreadableAnalyzeBody, publicErrorMessage } from "@/lib/public-errors";
 import { uploadErrorMessage, validateImageBytes } from "@/lib/validate-upload";
@@ -27,6 +31,7 @@ export function DebuggerApp() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [report, setReport] = useState<AnalysisReport | null>(null);
   const [investigationRound, setInvestigationRound] = useState(0);
+  const [investigationAnswer, setInvestigationAnswer] = useState<string | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const requestId = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
@@ -84,6 +89,7 @@ export function DebuggerApp() {
     setPhase("idle");
     setElapsedSeconds(0);
     setInvestigationRound(0);
+    setInvestigationAnswer(null);
   }
 
   async function selectFile(file: File) {
@@ -160,6 +166,7 @@ export function DebuggerApp() {
     setErrorMessage(null);
     setReport(null);
     setInvestigationRound(0);
+    setInvestigationAnswer(null);
     setElapsedSeconds(0);
     if (demoToken) {
       sessionStorage.setItem("screenshot-debugger-demo-access", demoToken);
@@ -184,59 +191,26 @@ export function DebuggerApp() {
     }
   }
 
-  async function investigate(answer: string) {
-    if (!report || investigationRound >= 2 || busy) {
+  function investigate(answer: string) {
+    if (
+      !canAcceptInvestigationAnswer({
+        hasReport: Boolean(report),
+        answer,
+        existingAnswer: investigationAnswer,
+        analyzing: phase === "analyzing",
+      })
+    ) {
       return;
     }
-    const id = requestId.current + 1;
-    requestId.current = id;
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-    setPhase("investigating");
-    setErrorMessage(null);
-    setElapsedSeconds(0);
-
-    const priorReport = {
-      status: report.status,
-      observedError: report.observedError,
-      evidence: report.evidence,
-      hypotheses: report.hypotheses,
-      explanation: report.explanation,
-      proposedFix: report.proposedFix,
-      suggestedCode: report.suggestedCode,
-      verificationSteps: report.verificationSteps,
-      missingContext: report.missingContext,
-      limitations: report.limitations,
-      investigationQuestion: report.investigationQuestion,
-      learn: report.learn,
-      learnedPrinciple: report.learnedPrinciple,
-      prevention: report.prevention,
-      changeNotes: report.changeNotes,
-    };
-
-    try {
-      const response = await fetch("/api/investigate", {
-        method: "POST",
-        headers: authHeaders(),
-        body: JSON.stringify({
-          userAnswer: answer,
-          framework,
-          context,
-          code,
-          language,
-          round: (investigationRound + 1) as 1 | 2,
-          priorReport,
-        }),
-        signal: controller.signal,
-      });
-      const ok = await applyReportResponse(response, id);
-      if (ok && id === requestId.current) {
-        setInvestigationRound((value) => value + 1);
-      }
-    } catch (error) {
-      handleFetchError(error, id);
+    const trimmed = normalizeInvestigationAnswer(answer);
+    if (!trimmed) {
+      return;
     }
+    // Instant unlock for live demos: no second Gemma call (avoids ~10–20 s waits / gateway cuts).
+    setErrorMessage(null);
+    setPhase("idle");
+    setInvestigationAnswer(trimmed);
+    setInvestigationRound(1);
   }
 
   async function applyReportResponse(response: Response, id: number): Promise<boolean> {
@@ -405,16 +379,15 @@ export function DebuggerApp() {
         <AnalysisReportView
           report={report}
           analyzing={phase === "analyzing"}
-          investigating={phase === "investigating"}
+          investigating={false}
           investigationRound={investigationRound}
+          investigationAnswer={investigationAnswer}
           elapsedSeconds={elapsedSeconds}
           errorMessage={errorMessage}
           mode={mode}
           userCode={code}
           framework={framework}
-          onInvestigate={(value) => {
-            void investigate(value);
-          }}
+          onInvestigate={investigate}
         />
       </main>
     </div>
