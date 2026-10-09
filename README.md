@@ -115,9 +115,6 @@ Hors scope volontaire : Launchpad Observability / RAG / Airflow, GPU Droplets, c
 | Diff avant/après + `changeNotes` | Implémenté et vérifié |
 | Fiche Markdown + `localStorage` | Implémenté et vérifié |
 | Indices numérotés | Implémenté |
-| Annotations pixel | **Non implémenté** |
-| Mini défi de transfert | **Non implémenté** |
-| Exécution auto du correctif | **Non implémenté** (volontairement) |
 
 ---
 
@@ -396,7 +393,6 @@ Détails : [`docs/SECURITY.md`](docs/SECURITY.md).
 - Google peut répondre 500 / JSON inutilisable ; l’app n’invente pas un rapport.
 - 12 analyses / heure / processus (mémoire du conteneur).
 - Capture illisible → `unreadable` ; cause invisible → `needs_context`.
-- Annotations pixel et mini défi : non livrés.
 
 ---
 
