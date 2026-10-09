@@ -9,8 +9,8 @@
 **FR ·** Atelier de débogage guidé pour étudiants et développeurs en JavaScript, TypeScript et React. Une capture d’erreur devient une enquête, une correction expliquée et une fiche réutilisable.  
 **EN ·** A guided debugging workshop for JavaScript, TypeScript and React students and developers. An error screenshot becomes an investigation, an explained fix, and a reusable error card.
 
-**FR ·** Esprit Stack Overflow : comprendre, expliquer, partager. Pas d’affiliation. L’app n’exécute jamais la correction.  
-**EN ·** Stack Overflow spirit: understand, explain, share. Not affiliated. The app never runs the fix.
+**FR ·** Même esprit que Stack Overflow : comprendre l’erreur, expliquer la cause, partager une correction lisible. **Pas d’affiliation** avec Stack Overflow / Stack Exchange — projet indépendant, open source. L’app n’exécute jamais la correction.  
+**EN ·** Same spirit as Stack Overflow: understand the error, explain the cause, share a readable fix. **Not affiliated** with Stack Overflow / Stack Exchange — independent open-source project. The app never runs the fix.
 
 **Démo en ligne / Live demo :** [https://screenshot-debugger-qzyjc.ondigitalocean.app/](https://screenshot-debugger-qzyjc.ondigitalocean.app/)  
 (URL vérifiée le 9 octobre 2026 / checked on 9 October 2026. Quota Google et disponibilité non garantis.)
