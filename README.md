@@ -120,6 +120,18 @@ Hors scope volontaire : Launchpad Observability / RAG / Airflow, GPU Droplets, c
 
 ## Comment ça marche / How it works
 
+```mermaid
+flowchart LR
+  browser[Navigateur_UI]
+  analyze[POST_api_analyze]
+  investigate[POST_api_investigate]
+  diagnose[diagnose_et_Zod]
+  gemma[Gemma_4_via_Gemini_API]
+  browser --> analyze --> diagnose --> gemma
+  browser --> investigate --> diagnose
+  gemma --> diagnose --> browser
+```
+
 ```text
 Capture PNG ou JPEG
         |
