@@ -38,7 +38,7 @@ La doc d'appel est https://ai.google.dev/gemma/docs/core/gemma_on_gemini_api
 
 ## Déploiement
 
-Pas d'URL. La cible préparée est DigitalOcean App Platform, spec dans `.do/app.yaml`, non appliquée. Le service web prévu coûte environ 5 $ US par mois (`apps-s-1vcpu-0.5gb`). Il n'a pas été créé. Les étapes sont dans `docs/DIGITALOCEAN.md`.
+L'application est en ligne : https://screenshot-debugger-qzyjc.ondigitalocean.app. Le service coûte 5 $ US par mois. La page et le refus d'un fichier non PNG ont été vérifiés. Le 9 octobre à 12 h 38, le bouton Analyser répondait que la requête ne venait pas de l'application, parce que le nom d'hôte vu par Next.js diffère de celui du navigateur. Le correctif compare aussi `x-forwarded-host`.
 
 DevRelay n'est pas disponible dans les outils de cette session. Aucune offre n'a été consultée, publiée ou réclamée.
 

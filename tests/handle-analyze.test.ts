@@ -81,6 +81,15 @@ describe("handleAnalyze", () => {
     );
     expect(cross.status).toBe(403);
 
+    const proxied = await handleAnalyze(
+      request(input, {
+        origin: "https://screenshot-debugger-qzyjc.ondigitalocean.app",
+        "x-forwarded-host": "screenshot-debugger-qzyjc.ondigitalocean.app",
+      }),
+      { caller: async () => validJson },
+    );
+    expect(proxied.status).toBe(200);
+
     process.env.DEMO_ACCESS_TOKEN = "judge-access";
     const denied = await handleAnalyze(request(input), { caller: async () => validJson });
     expect(denied.status).toBe(401);

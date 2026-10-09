@@ -140,11 +140,19 @@ export function isSameOrigin(request: Request): boolean {
   if (!origin) {
     return true;
   }
+  let originHost: string;
   try {
-    return new URL(origin).host === new URL(request.url).host;
+    originHost = new URL(origin).host;
   } catch {
     return false;
   }
+  return requestHosts(request).includes(originHost);
+}
+
+function requestHosts(request: Request): string[] {
+  const forwarded = request.headers.get("x-forwarded-host")?.split(",")[0]?.trim();
+  const hosts = [forwarded, request.headers.get("host"), new URL(request.url).host];
+  return hosts.filter((host): host is string => Boolean(host));
 }
 
 export function hasDemoAccess(request: Request): boolean {
