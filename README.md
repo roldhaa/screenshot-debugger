@@ -9,7 +9,7 @@ Le public visé est les étudiants en JavaScript, TypeScript et React. Le code e
 
 **Démo en ligne :** [screenshot-debugger-qzyjc.ondigitalocean.app](https://screenshot-debugger-qzyjc.ondigitalocean.app)
 
-Le 9 octobre 2026, le bouton **Charger l'exemple React** puis **Analyser** a produit un rapport réel de Gemma 4 en 9 secondes. L'erreur observée était `TypeError: Cannot read properties of undefined (reading 'map')`.
+Le 9 octobre 2026, les boutons **Exemple 1**, **Exemple 2** et **Exemple 3** ont produit des rapports Gemma 4 réels (`diagnosed`). Les images à tester à la main sont dans [`examples/demo-captures/`](examples/demo-captures/).
 
 ## Comment ça marche
 
