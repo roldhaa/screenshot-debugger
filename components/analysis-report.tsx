@@ -118,7 +118,9 @@ function ReportBody({
     setCopied(label);
   }
 
-  const showSolution = mode === "direct" || revealFix;
+  const pendingInvestigation =
+    Boolean(report.investigationQuestion) && investigationRound === 0;
+  const showSolution = !pendingInvestigation && (mode === "direct" || revealFix);
   const cardStatus: ErrorCardStatus = userResolved
     ? "resolution_declaree"
     : report.proposedFix || report.suggestedCode
@@ -169,44 +171,18 @@ function ReportBody({
 
       <Field title="Explication" value={report.explanation} />
 
-      {report.learn && mode === "learn" ? (
-        <div className="rounded-md border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950">
-          <h3 className="text-base font-semibold">Réfléchir avant la correction</h3>
-          <p className="mt-2 text-sm">{report.learn.question}</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <button
-              type="button"
-              className="min-h-11 rounded-md border border-zinc-300 bg-white px-3 text-sm dark:border-zinc-600 dark:bg-zinc-900"
-              onClick={() => setShowHint(true)}
-            >
-              Donner un indice
-            </button>
-            <button
-              type="button"
-              className="min-h-11 rounded-md border border-zinc-300 bg-white px-3 text-sm dark:border-zinc-600 dark:bg-zinc-900"
-              onClick={() => setShowLearnExplanation(true)}
-            >
-              Voir l&apos;explication
-            </button>
-            <button
-              type="button"
-              className="min-h-11 rounded-md bg-blue-700 px-3 text-sm font-medium text-white"
-              onClick={() => setRevealFix(true)}
-            >
-              Afficher la correction
-            </button>
-          </div>
-          {showHint ? <p className="mt-3 text-sm">Indice : {report.learn.hint}</p> : null}
-          {showLearnExplanation ? (
-            <p className="mt-3 text-sm">Explication : {report.learn.explanation}</p>
-          ) : null}
-        </div>
-      ) : null}
-
       {report.investigationQuestion && investigationRound < 2 ? (
-        <div className="rounded-md border border-zinc-200 p-3 dark:border-zinc-700">
+        <div className="rounded-md border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950">
           <h3 className="text-base font-semibold">Enquête</h3>
-          <p className="mt-2 text-sm">{report.investigationQuestion.prompt}</p>
+          <p className="mt-1 text-sm text-zinc-800 dark:text-zinc-200">
+            Cette question sert à préciser une info absente de la capture (ex. état initial, forme
+            de l&apos;API). Gemma s&apos;en sert pour affiner le diagnostic — sans renvoyer
+            l&apos;image.{" "}
+            {pendingInvestigation
+              ? "Réponds d'abord ici : la correction reste masquée tant que tu n'as pas envoyé une réponse."
+              : null}
+          </p>
+          <p className="mt-2 text-sm font-medium">{report.investigationQuestion.prompt}</p>
           <p className="mt-1 text-sm text-zinc-700 dark:text-zinc-300">
             Pourquoi : {report.investigationQuestion.why}
           </p>
@@ -219,6 +195,7 @@ function ReportBody({
             value={answer}
             onChange={(event) => setAnswer(event.target.value)}
             disabled={investigating}
+            placeholder="Ex. users = undefined au premier rendu, ou Je ne sais pas"
           />
           <div className="mt-2 flex flex-wrap gap-2">
             <button
@@ -231,7 +208,7 @@ function ReportBody({
             </button>
             <button
               type="button"
-              className="min-h-11 rounded-md border border-zinc-300 px-3 text-sm dark:border-zinc-600"
+              className="min-h-11 rounded-md border border-zinc-300 bg-white px-3 text-sm dark:border-zinc-600 dark:bg-zinc-900"
               disabled={investigating}
               onClick={() => setAnswer("Je ne sais pas")}
             >
@@ -239,8 +216,52 @@ function ReportBody({
             </button>
           </div>
           <p className="mt-2 text-xs text-zinc-600 dark:text-zinc-400">
-            Tour {investigationRound + 1} sur 2. Pas d&apos;image renvoyée.
+            Tour {investigationRound + 1} sur 2. « Je ne sais pas » est valide : Gemma continue avec
+            un contexte incomplet et peut proposer une protection prudente. Pas d&apos;image
+            renvoyée.
           </p>
+        </div>
+      ) : null}
+
+      {report.learn && mode === "learn" ? (
+        <div className="rounded-md border border-blue-200 bg-blue-50 p-3 dark:border-blue-900 dark:bg-blue-950">
+          <h3 className="text-base font-semibold">Réfléchir avant la correction</h3>
+          <p className="mt-2 text-sm">{report.learn.question}</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              className="min-h-11 rounded-md border border-zinc-300 bg-white px-3 text-sm dark:border-zinc-600 dark:bg-zinc-900"
+              onClick={() => setShowHint(true)}
+              disabled={pendingInvestigation}
+            >
+              Donner un indice
+            </button>
+            <button
+              type="button"
+              className="min-h-11 rounded-md border border-zinc-300 bg-white px-3 text-sm dark:border-zinc-600 dark:bg-zinc-900"
+              onClick={() => setShowLearnExplanation(true)}
+              disabled={pendingInvestigation}
+            >
+              Voir l&apos;explication
+            </button>
+            <button
+              type="button"
+              className="min-h-11 rounded-md bg-blue-700 px-3 text-sm font-medium text-white disabled:opacity-50"
+              onClick={() => setRevealFix(true)}
+              disabled={pendingInvestigation}
+            >
+              Afficher la correction
+            </button>
+          </div>
+          {pendingInvestigation ? (
+            <p className="mt-3 text-sm text-zinc-800 dark:text-zinc-200">
+              Réponds d&apos;abord à l&apos;enquête ci-dessus pour débloquer cette étape.
+            </p>
+          ) : null}
+          {showHint ? <p className="mt-3 text-sm">Indice : {report.learn.hint}</p> : null}
+          {showLearnExplanation ? (
+            <p className="mt-3 text-sm">Explication : {report.learn.explanation}</p>
+          ) : null}
         </div>
       ) : null}
 
@@ -268,10 +289,14 @@ function ReportBody({
           <Field title="Principe appris" value={report.learnedPrinciple} />
           <List title="Prévention" items={report.prevention} />
         </>
+      ) : pendingInvestigation ? (
+        <p className="rounded-md border border-zinc-200 p-3 text-sm text-zinc-800 dark:border-zinc-700 dark:text-zinc-200">
+          Correction masquée : envoie d&apos;abord une réponse à l&apos;enquête (même « Je ne sais
+          pas »). Ensuite tu pourras voir le correctif proposé.
+        </p>
       ) : (
         <p className="text-sm text-zinc-700 dark:text-zinc-300">
-          La correction reste masquée tant que tu n&apos;as pas demandé à la voir. Tu peux aussi
-          répondre à l&apos;enquête.
+          La correction reste masquée tant que tu n&apos;as pas demandé à la voir.
         </p>
       )}
 
