@@ -102,6 +102,28 @@ export function DebuggerApp() {
     replacePreview(null);
   }
 
+  async function loadExample() {
+    const response = await fetch("/fixtures/react-map-error.png");
+    if (!response.ok) {
+      setFileError("L'exemple public est introuvable.");
+      return;
+    }
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    const validation = validateImageBytes(bytes);
+    if (!validation.ok) {
+      setFileError(uploadErrorMessage[validation.code]);
+      return;
+    }
+    invalidatePendingResult();
+    setFileError(null);
+    setImageBase64(bytesToBase64(bytes));
+    replacePreview(URL.createObjectURL(new Blob([bytes], { type: validation.mimeType })));
+    setFramework("react");
+    setLanguage("fr");
+    setContext("J'affiche les noms au premier rendu, avant que la liste soit chargée.");
+    setCode("function renderNames(users) {\n  return users.map((user) => user.name);\n}");
+  }
+
   function clearSession() {
     removeImage();
     setFramework("auto");
@@ -213,6 +235,15 @@ export function DebuggerApp() {
             onLanguage={setLanguage}
             onDemoToken={setDemoToken}
           />
+          <button
+            type="button"
+            className="min-h-11 self-start rounded-md border border-zinc-300 px-3 text-sm dark:border-zinc-700"
+            onClick={() => {
+              void loadExample();
+            }}
+          >
+            Charger l&apos;exemple React
+          </button>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
