@@ -20,15 +20,17 @@ Mis à jour le 9 octobre 2026, vers 11 h 30, America/Toronto.
 
 ## Blocage externe
 
-`GEMINI_API_KEY` n'est pas dans l'environnement du shell ni dans un fichier `.env` du dépôt. L'appel réel et le déploiement Vercel qui utiliserait cette clé ne sont donc pas faits.
+`.env` existe et est ignoré par Git. `GEMINI_API_KEY` y est vide. Aucun appel Gemma réel n'a donc été fait.
 
 Pour débloquer l'appel :
 
 ```bash
-cp .env.example .env
 # écrire la clé dans .env, sans la coller dans un chat
 npm run prove:gemma
 ```
+
+La clé se crée dans Google AI Studio : https://aistudio.google.com/apikey
+La doc d'appel est https://ai.google.dev/gemma/docs/core/gemma_on_gemini_api
 
 ## Modèle prévu
 
@@ -36,7 +38,9 @@ npm run prove:gemma
 
 ## Déploiement
 
-Pas d'URL. `npx vercel whoami` (CLI 63.1.0) a répondu « Logged out ». Il faut `vercel login`, puis définir `GEMINI_API_KEY` dans les variables serveur du projet, pas dans Git.
+Pas d'URL. La cible préparée est DigitalOcean App Platform, spec dans `.do/app.yaml`, non appliquée. Le service web prévu coûte environ 5 $ US par mois (`apps-s-1vcpu-0.5gb`). Il n'a pas été créé. Les étapes sont dans `docs/DIGITALOCEAN.md`.
+
+DevRelay n'est pas disponible dans les outils de cette session. Aucune offre n'a été consultée, publiée ou réclamée.
 
 ## Prochaine action
 

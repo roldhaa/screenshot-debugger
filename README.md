@@ -55,6 +55,16 @@ npm run prove:gemma
 
 Le navigateur envoie la capture et le contexte à `POST /api/analyze`. Le serveur valide l'image, borne la requête, appelle Gemma, valide le JSON, puis renvoie un rapport. Le navigateur affiche ce rapport et peut le copier. Il n'appelle pas Google et n'exécute pas le code proposé.
 
+L'appel réel est dans [lib/server/gemma.ts](lib/server/gemma.ts). Le modèle documenté par Google est `gemma-4-26b-a4b-it` (repli `gemma-4-31b-it`), via la Gemini API et le SDK `@google/genai`. Pour une image, le serveur utilise `files.upload` puis `createPartFromUri`, comme dans la [doc Gemma sur la Gemini API](https://ai.google.dev/gemma/docs/core/gemma_on_gemini_api). Le fichier est supprimé ensuite. `gemma-4-26b-a4b-it` accepte le texte et l'image selon le [guide de démarrage Gemma](https://ai.google.dev/gemma/docs/get_started).
+
+## DigitalOcean
+
+Le dépôt contient [.do/app.yaml](.do/app.yaml) pour un Web Service App Platform, parce que l'analyse passe par une route serveur. Ce fichier n'a pas été appliqué. Aucune URL publique n'existe.
+
+La taille prévue est `apps-s-1vcpu-0.5gb` : 1 vCPU partagé, 512 Mio, environ 5 $ US par mois. Le créer dans le tableau de bord lance cette facturation. Les étapes sont dans [docs/DIGITALOCEAN.md](docs/DIGITALOCEAN.md).
+
+`next start` écoute `0.0.0.0` et la variable `PORT`. La spec fixe le port HTTP à 8080. La clé se met dans le tableau de bord, en variable secrète d'exécution, pas dans Git.
+
 ## Licence et modèle
 
 Le code de ce dépôt est sous [MIT](LICENSE). Cette licence ne couvre pas les paquets ni les poids de Gemma. La fiche du modèle est sur [ai.google.dev/gemma/docs/core/model_card_4](https://ai.google.dev/gemma/docs/core/model_card_4).
@@ -67,7 +77,7 @@ La capture, le contexte et le code sont envoyés à Google pour l'analyse. Cette
 
 - Une correction est une proposition. L'application ne l'exécute pas et n'ouvre pas le dépôt.
 - Une capture illisible ou incomplète doit produire `unreadable` ou `needs_context`, pas une certitude inventée.
-- La limite d'analyses en mémoire ne vaut que pour un processus. Elle ne protège pas plusieurs instances serverless.
+- La limite d'analyses en mémoire couvre le processus en cours. Avec un seul conteneur App Platform, cela couvre la démo. Plusieurs conteneurs ne partageraient pas ce compteur.
 - Le quota, le coût et la latence réels dépendent du compte Google. Ils ne sont pas garantis ici.
 
 ## Outils utilisés pour développer
@@ -76,4 +86,4 @@ Cursor, avec le modèle Grok 4.7, a aidé à écrire ce dépôt pendant le Hackt
 
 ## Hackathon
 
-Version de compétition du 9 octobre 2026 : parcours local, validation, rapport structuré, exemple React vérifié à la main, tests simulés. Un appel Gemma réel et un déploiement public restent à confirmer tant que la clé et l'hébergeur ne sont pas branchés. Voir [docs/SUBMISSION.md](docs/SUBMISSION.md) et [PROJECT_STATE.md](PROJECT_STATE.md).
+Version de compétition du 9 octobre 2026 : parcours local, validation, rapport structuré, exemple React vérifié à la main, tests simulés, spec DigitalOcean non appliquée. L'appel Gemma réel reste bloqué tant que `GEMINI_API_KEY` est vide. Voir [docs/SUBMISSION.md](docs/SUBMISSION.md) et [PROJECT_STATE.md](PROJECT_STATE.md).

@@ -29,7 +29,7 @@ Dès que `npm run prove:gemma` a réussi, noter ici le modèle, le statut, la du
 
 ## Questions probables
 
-- Où est l'image ? Dans la requête serveur, en données inline, avec repli vers l'API Fichiers puis suppression.
+- Où est l'image ? Le serveur l'envoie à Gemma par l'API Fichiers, comme dans la doc Gemini API, puis supprime le fichier. Si cet envoi est refusé, il réessaie avec l'image inline.
 - Quel modèle ? `gemma-4-26b-a4b-it`, sinon `gemma-4-31b-it`.
 - Qu'avons-nous construit ? Le parcours, la validation, le prompt, le schéma et l'exemple. Next.js, React, Zod et le SDK Google sont des bibliothèques.
 - Comment sait-on que la correction marche ? Seulement pour l'exemple, parce que `verify.mjs` a été exécuté.

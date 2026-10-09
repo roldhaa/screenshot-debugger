@@ -1,4 +1,4 @@
-import { ApiError, GoogleGenAI, type Part } from "@google/genai";
+import { ApiError, GoogleGenAI, createPartFromUri, createUserContent, type Part } from "@google/genai";
 import { LIMITS } from "@/lib/limits";
 import { MODEL_RESPONSE_JSON_SCHEMA, SYSTEM_PROMPT } from "@/lib/prompts/screenshot-debugger";
 import { type ModelCall, type ModelCaller, ProviderError } from "@/lib/server/diagnose";
@@ -66,26 +66,27 @@ async function generate(
   ai: GoogleGenAI,
   request: ModelCall,
   abortSignal: AbortSignal,
-  allowFileFallback: boolean,
+  allowInlineFallback: boolean,
 ): Promise<string> {
-  const parts: Part[] = [];
   if (request.image) {
-    parts.push({
-      inlineData: {
-        mimeType: request.image.mimeType,
-        data: request.image.dataBase64,
-      },
-    });
-  }
-  parts.push({ text: request.userText });
-  try {
-    return await generateWithParts(ai, request, abortSignal, parts);
-  } catch (error) {
-    if (allowFileFallback && request.image && isInlineTransportError(error)) {
-      return generateFromUploadedFile(ai, request, abortSignal);
+    try {
+      return await generateFromUploadedFile(ai, request, abortSignal);
+    } catch (error) {
+      if (allowInlineFallback && isUploadTransportError(error)) {
+        return generateWithParts(ai, request, abortSignal, [
+          {
+            inlineData: {
+              mimeType: request.image.mimeType,
+              data: request.image.dataBase64,
+            },
+          },
+          { text: request.userText },
+        ]);
+      }
+      throw error;
     }
-    throw error;
   }
+  return generateWithParts(ai, request, abortSignal, [{ text: request.userText }]);
 }
 
 async function generateFromUploadedFile(
@@ -105,10 +106,13 @@ async function generateFromUploadedFile(
     if (!uploaded.uri) {
       throw new ProviderError("unavailable");
     }
-    return await generateWithParts(ai, request, abortSignal, [
-      { fileData: { fileUri: uploaded.uri, mimeType: uploaded.mimeType ?? request.image.mimeType } },
-      { text: request.userText },
-    ]);
+    const mimeType = uploaded.mimeType ?? request.image.mimeType;
+    return await generateWithParts(
+      ai,
+      request,
+      abortSignal,
+      createUserContent([createPartFromUri(uploaded.uri, mimeType), request.userText]).parts ?? [],
+    );
   } finally {
     if (uploaded.name) {
       await ai.files.delete({ name: uploaded.name }).catch(() => {
@@ -139,10 +143,10 @@ async function generateWithParts(
   return response.text ?? "";
 }
 
-function isInlineTransportError(error: unknown): boolean {
+function isUploadTransportError(error: unknown): boolean {
   const status = readStatus(error);
   const message = error instanceof Error ? error.message : "";
-  return status === 400 && /inline|image bytes|mime/i.test(message) && !/schema/i.test(message);
+  return status === 400 && /upload|file|inline|mime/i.test(message) && !/schema/i.test(message);
 }
 
 function readStatus(error: unknown): number | undefined {

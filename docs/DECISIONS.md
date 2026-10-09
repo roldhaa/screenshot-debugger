@@ -72,6 +72,22 @@ Compromis : rien n'est conservé par l'application entre les sessions. Google et
 
 Jury : « On a construit le diagnostic, pas un produit de comptes. »
 
+## DigitalOcean plutôt qu'un site statique
+
+Décision : un Web Service App Platform, spec dans `.do/app.yaml`, taille `apps-s-1vcpu-0.5gb`.
+
+Besoin : la route d'analyse doit tourner avec la clé sur le serveur.
+
+Pourquoi : un site statique ne peut pas appeler Gemma sans exposer la clé. Next.js est déjà le serveur. Aucune migration.
+
+Alternative : Vercel. Le compte CLI était déconnecté, et le cahier demande maintenant DigitalOcean.
+
+Compromis : ce conteneur coûte environ 5 $ US par mois. Il n'a pas été créé. 512 Mio peuvent être justes pour Next.js.
+
+Validation : la spec cite les commandes réelles `npm run build` et `npm start`. Next.js 16.4 écoute `0.0.0.0` et `PORT`. Aucune URL n'a été ouverte.
+
+Jury : « DigitalOcean hébergerait le serveur qui appelle Gemma. On n'a pas lancé le conteneur payant sans accord. »
+
 ## Limite d'abus
 
 Décision : 12 analyses par heure et 2 analyses simultanées, en mémoire, par processus. `DEMO_ACCESS_TOKEN` peut fermer l'endpoint.

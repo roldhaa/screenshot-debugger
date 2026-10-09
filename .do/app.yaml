@@ -1,0 +1,24 @@
+# Applying this spec creates a paid App Platform web service.
+# Smallest size: apps-s-1vcpu-0.5gb, about $5 per month.
+# Do not apply it until that charge is accepted.
+name: screenshot-debugger
+region: tor
+services:
+  - name: web
+    github:
+      repo: roldhaa/screenshot-debugger
+      branch: main
+      deploy_on_push: true
+    environment_slug: node-js
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    http_port: 8080
+    build_command: npm run build
+    run_command: npm start
+    envs:
+      - key: GEMINI_API_KEY
+        scope: RUN_TIME
+        type: SECRET
+      - key: GEMMA_MODEL
+        scope: RUN_AND_BUILD_TIME
+        value: gemma-4-26b-a4b-it

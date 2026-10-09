@@ -6,7 +6,7 @@ La confirmation dans OrganizerHQ reste à faire par Harold. Ne pas déclarer les
 
 - Nom : Screenshot Debugger
 - Lien GitHub : https://github.com/roldhaa/screenshot-debugger
-- URL de démo : à ajouter après le déploiement. En attendant, la démo locale est `npm run dev`.
+- URL de démo : absente. La spec DigitalOcean est prête et non appliquée. La démo locale est `npm run dev`.
 - Technologies : Next.js, TypeScript, Tailwind CSS, Zod, Gemma 4 via la Gemini API (`@google/genai`)
 
 ## Description

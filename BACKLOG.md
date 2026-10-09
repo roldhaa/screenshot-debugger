@@ -14,7 +14,7 @@ Estimations indicatives, pas des garanties. Ordre : P0 restant, puis P1, puis P2
 | Interface | terminé | parcours navigateur local |
 | Exemple React avant/après | terminé | `node examples/react-map-undefined/verify.mjs` |
 | Appel Gemma réel | bloqué | `npm run prove:gemma` dès que `.env` contient la clé |
-| Déploiement | à faire | URL réelle et un appel depuis cette URL |
+| Déploiement DigitalOcean | préparé, non créé | Spec `.do/app.yaml`. Le service coûte environ 5 $ US par mois. URL réelle encore absente. |
 | Textes de soumission | terminé | `docs/SUBMISSION.md`, confirmation du formulaire encore à faire |
 
 ## P1
