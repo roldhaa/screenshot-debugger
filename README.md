@@ -68,11 +68,42 @@ Ouvre [http://localhost:3000](http://localhost:3000).
 
 Sans clé, l'interface le dit clairement. Ce n'est pas une analyse.
 
-## Scénario de démonstration
+## Démonstration pour le jury
 
-Dans l'application, clique **Charger l'exemple React**, puis **Analyser**.
+**URL publique :** [screenshot-debugger-qzyjc.ondigitalocean.app](https://screenshot-debugger-qzyjc.ondigitalocean.app)
 
-La capture est [`examples/react-map-undefined/error.png`](examples/react-map-undefined/error.png). Le script bogué appelle `.map()` sur une valeur `undefined`. Le script corrigé utilise `(users ?? []).map(...)`.
+### Test rapide dans l'application (recommandé)
+
+Trois exemples sont déjà chargés dans l'interface. Clique un bouton, puis **Analyser**. Aucun fichier à chercher.
+
+| Bouton | Erreur | Temps observé (appel public) |
+| --- | --- | --- |
+| **Exemple 1 · React map** | `.map()` sur `undefined` | ~13 s |
+| **Exemple 2 · null length** | `.length` sur `null` | ~9 s |
+| **Exemple 3 · filter** | `.filter is not a function` | ~12 s |
+
+Les trois ont renvoyé le statut `diagnosed` avec Gemma 4 (`gemma-4-26b-a4b-it`). La passerelle DigitalOcean coupe vers 20 secondes : ces exemples restent sous cette limite.
+
+### Images à téléverser soi-même
+
+Dossier : [`examples/demo-captures/`](examples/demo-captures/). Ce sont des PNG lisibles, prêts à déposer dans **Capture PNG ou JPEG**.
+
+| Fichier | Erreur visible |
+| --- | --- |
+| [`01-react-map.png`](examples/demo-captures/01-react-map.png) | map sur undefined |
+| [`02-null-length.png`](examples/demo-captures/02-null-length.png) | length sur null |
+| [`03-not-a-function.png`](examples/demo-captures/03-not-a-function.png) | filter is not a function |
+| [`04-json-parse.png`](examples/demo-captures/04-json-parse.png) | JSON.parse reçoit du HTML |
+| [`05-not-defined.png`](examples/demo-captures/05-not-defined.png) | count is not defined |
+| [`06-set-undefined.png`](examples/demo-captures/06-set-undefined.png) | écriture sur undefined |
+| [`07-module-not-found.png`](examples/demo-captures/07-module-not-found.png) | module introuvable |
+| [`08-promise-rejection.png`](examples/demo-captures/08-promise-rejection.png) | promesse sans catch |
+| [`09-assignment-const.png`](examples/demo-captures/09-assignment-const.png) | assignation à une const |
+| [`10-react-key.png`](examples/demo-captures/10-react-key.png) | clé React manquante |
+
+Le détail est aussi dans [`examples/demo-captures/README.md`](examples/demo-captures/README.md).
+
+### Preuve avant / après (exemple map)
 
 ```bash
 node examples/react-map-undefined/verify.mjs
@@ -85,7 +116,9 @@ before: TypeError reading map
 after: []
 ```
 
-Pour refaire l'appel Gemma depuis la machine locale :
+L'application propose la correction. Elle ne l'exécute pas. `verify.mjs` montre le correctif appliqué à la main.
+
+Pour un appel Gemma local :
 
 ```bash
 npm run prove:gemma
