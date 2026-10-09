@@ -1,4 +1,11 @@
-import { ApiError, GoogleGenAI, createPartFromUri, createUserContent, type Part } from "@google/genai";
+import {
+  ApiError,
+  GoogleGenAI,
+  ThinkingLevel,
+  createPartFromUri,
+  createUserContent,
+  type Part,
+} from "@google/genai";
 import { LIMITS } from "@/lib/limits";
 import { MODEL_RESPONSE_JSON_SCHEMA, SYSTEM_PROMPT } from "@/lib/prompts/screenshot-debugger";
 import { type ModelCall, type ModelCaller, ProviderError } from "@/lib/server/diagnose";
@@ -134,7 +141,8 @@ async function generateWithParts(
     config: {
       systemInstruction: SYSTEM_PROMPT,
       temperature: 0.2,
-      maxOutputTokens: 4096,
+      maxOutputTokens: 700,
+      thinkingConfig: { thinkingLevel: ThinkingLevel.MINIMAL },
       abortSignal,
       responseMimeType: "application/json",
       ...(request.responseSchema ? { responseJsonSchema: MODEL_RESPONSE_JSON_SCHEMA } : {}),

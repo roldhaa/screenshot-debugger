@@ -1,6 +1,6 @@
 import type { AnalyzeInput } from "@/lib/analysis-schema";
 
-export const PROMPT_VERSION = "2026-10-09.1";
+export const PROMPT_VERSION = "2026-10-09.2";
 export const PRIMARY_MODEL = "gemma-4-26b-a4b-it";
 export const FALLBACK_MODEL = "gemma-4-31b-it";
 
@@ -27,6 +27,7 @@ Tu ne dois pas :
 - Affirmer qu'un paquet s'installe sous le même nom qu'un import sans le présenter comme une hypothèse à vérifier.
 - Recommander une commande destructive sans alternative plus sûre.
 - Donner un score de confiance chiffré.
+- Dépasser une phrase courte par champ, ni plus de deux éléments par liste. La passerelle coupe la requête à 20 secondes.
 
 Choisis le statut :
 - unreadable si l'image est illisible.
@@ -43,36 +44,38 @@ export const MODEL_RESPONSE_JSON_SCHEMA = {
       type: "string",
       enum: ["diagnosed", "needs_context", "unreadable", "no_error_detected"],
     },
-    observedError: { type: "string", nullable: true },
-    evidence: { type: "array", items: { type: "string" } },
+    observedError: { type: "string", nullable: true, maxLength: 180 },
+    evidence: { type: "array", maxItems: 2, items: { type: "string", maxLength: 160 } },
     hypotheses: {
       type: "array",
+      maxItems: 1,
       items: {
         type: "object",
         properties: {
-          cause: { type: "string" },
-          justification: { type: "string" },
-          toVerify: { type: "string" },
+          cause: { type: "string", maxLength: 160 },
+          justification: { type: "string", maxLength: 180 },
+          toVerify: { type: "string", maxLength: 160 },
         },
         required: ["cause", "justification", "toVerify"],
       },
     },
-    explanation: { type: "string" },
-    proposedFix: { type: "string", nullable: true },
-    suggestedCode: { type: "string", nullable: true },
+    explanation: { type: "string", maxLength: 280 },
+    proposedFix: { type: "string", nullable: true, maxLength: 220 },
+    suggestedCode: { type: "string", nullable: true, maxLength: 400 },
     verificationSteps: {
       type: "array",
+      maxItems: 2,
       items: {
         type: "object",
         properties: {
-          action: { type: "string" },
-          expectedResult: { type: "string" },
+          action: { type: "string", maxLength: 160 },
+          expectedResult: { type: "string", maxLength: 160 },
         },
         required: ["action", "expectedResult"],
       },
     },
-    missingContext: { type: "array", items: { type: "string" } },
-    limitations: { type: "array", items: { type: "string" } },
+    missingContext: { type: "array", maxItems: 2, items: { type: "string", maxLength: 140 } },
+    limitations: { type: "array", maxItems: 1, items: { type: "string", maxLength: 140 } },
   },
   required: [
     "status",
