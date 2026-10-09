@@ -36,6 +36,17 @@ export const verificationStepSchema = z.object({
   expectedResult: requiredText(500),
 });
 
+export const investigationQuestionSchema = z.object({
+  prompt: requiredText(300),
+  why: requiredText(300),
+});
+
+export const learnBlockSchema = z.object({
+  question: requiredText(300),
+  hint: requiredText(300),
+  explanation: requiredText(500),
+});
+
 export const modelOutputSchema = z
   .object({
     status: analysisStatusSchema,
@@ -48,6 +59,11 @@ export const modelOutputSchema = z
     verificationSteps: z.array(verificationStepSchema).max(6),
     missingContext: z.array(requiredText(400)).max(6),
     limitations: z.array(requiredText(400)).max(6),
+    investigationQuestion: investigationQuestionSchema.nullable().default(null),
+    learn: learnBlockSchema.nullable().default(null),
+    learnedPrinciple: optionalText(400).default(null),
+    prevention: z.array(requiredText(200)).max(2).default([]),
+    changeNotes: z.array(requiredText(200)).max(2).default([]),
   })
   .superRefine((value, context) => {
     if (value.status === "diagnosed" && !value.observedError) {
@@ -95,11 +111,48 @@ export const analyzeInputSchema = z
     }
   });
 
+export const investigateInputSchema = z
+  .object({
+    userAnswer: z.string().trim().min(1).max(LIMITS.maxTextChars),
+    framework: z.enum(["auto", "react", "typescript", "javascript"]),
+    context: z.string().max(LIMITS.maxTextChars),
+    code: z.string().max(LIMITS.maxTextChars),
+    language: z.enum(["fr", "en"]),
+    round: z.union([z.literal(1), z.literal(2)]),
+    priorReport: z.object({
+      status: analysisStatusSchema,
+      observedError: z.string().max(1000).nullable(),
+      evidence: z.array(z.string().max(500)).max(8),
+      hypotheses: z.array(hypothesisSchema).max(5),
+      explanation: z.string().max(2000),
+      proposedFix: z.string().max(1500).nullable(),
+      suggestedCode: z.string().max(LIMITS.maxSectionChars).nullable(),
+      verificationSteps: z.array(verificationStepSchema).max(6),
+      missingContext: z.array(z.string().max(400)).max(6),
+      limitations: z.array(z.string().max(400)).max(6),
+      investigationQuestion: investigationQuestionSchema.nullable(),
+      learn: learnBlockSchema.nullable(),
+      learnedPrinciple: z.string().max(400).nullable(),
+      prevention: z.array(z.string().max(200)).max(2),
+      changeNotes: z.array(z.string().max(200)).max(2),
+    }),
+  })
+  .superRefine((value, context) => {
+    if (value.context.length + value.code.length + value.userAnswer.length > LIMITS.maxTextChars) {
+      context.addIssue({
+        code: "custom",
+        path: ["userAnswer"],
+        message: "text_too_long",
+      });
+    }
+  });
+
 export type AnalysisStatus = z.infer<typeof analysisStatusSchema>;
 export type ModelOutput = z.infer<typeof modelOutputSchema>;
 export type ReportMetadata = z.infer<typeof reportMetadataSchema>;
 export type AnalysisReport = z.infer<typeof analysisReportSchema>;
 export type AnalyzeInput = z.infer<typeof analyzeInputSchema>;
+export type InvestigateInput = z.infer<typeof investigateInputSchema>;
 
 export class ModelOutputError extends Error {
   constructor(readonly reason: "empty" | "invalid_json" | "nonconforming") {

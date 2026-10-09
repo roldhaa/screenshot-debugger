@@ -45,7 +45,9 @@ describe("handleAnalyze", () => {
     resetRateLimitForTests();
     delete process.env.DEMO_ACCESS_TOKEN;
     delete process.env.GEMINI_API_KEY;
+    delete process.env.PUBLIC_APP_URL;
   });
+
 
   it("rejects an invalid image before calling the provider", async () => {
     let calls = 0;
@@ -81,14 +83,16 @@ describe("handleAnalyze", () => {
     );
     expect(cross.status).toBe(403);
 
+    process.env.PUBLIC_APP_URL = "https://screenshot-debugger-qzyjc.ondigitalocean.app";
     const proxied = await handleAnalyze(
       request(input, {
         origin: "https://screenshot-debugger-qzyjc.ondigitalocean.app",
-        "x-forwarded-host": "screenshot-debugger-qzyjc.ondigitalocean.app",
       }),
       { caller: async () => validJson },
     );
     expect(proxied.status).toBe(200);
+    delete process.env.PUBLIC_APP_URL;
+
 
     process.env.DEMO_ACCESS_TOKEN = "judge-access";
     const denied = await handleAnalyze(request(input), { caller: async () => validJson });

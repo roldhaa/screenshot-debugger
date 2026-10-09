@@ -27,9 +27,15 @@ Estimations indicatives, pas des garanties. Ordre : P0 restant, puis P1, puis P2
 | Durée réelle dans les métadonnées | terminé | champ `durationMs` rempli par le serveur |
 | Français et anglais | terminé | sélecteur envoyé au prompt |
 | Captures de démo | terminé | `examples/demo-captures/` + 3 boutons UI |
+| Mode Apprendre + Diagnostic direct | terminé | UI + champs `learn` dans le JSON Gemma |
+| Enquête interactive | terminé | `POST /api/investigate`, max 2 tours |
+| Diff expliqué + fiche Markdown | terminé | `components/code-diff.tsx`, `lib/error-card.ts` |
+| Annotations pixel | reporté | indices numérotés seulement |
+| Mini défi de transfert | reporté | après stabilisation démo |
 
 ## P2
 
-Compte, historique, GitHub OAuth, lecture de dépôt, PR automatique, shell, MCP, RAG, modèle local, application native, paiements. À reprendre après le hackathon, pas à la place du noyau.
+Compte, historique, GitHub OAuth, lecture de dépôt, PR automatique, shell, MCP, RAG, modèle local, application native, paiements, communauté publique. À reprendre après le hackathon, pas à la place du noyau.
+
 
 Limites laissées volontairement : la passerelle coupe vers 20 secondes, le repli `gemma-4-31b-it` n'est appelé qu'en cas de 404, et les 12 analyses par heure restent dans la mémoire du conteneur. Pas de base payante pour ce compteur.

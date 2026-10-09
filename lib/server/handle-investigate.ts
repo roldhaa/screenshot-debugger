@@ -1,17 +1,16 @@
-import { timingSafeEqual } from "node:crypto";
-import { analyzeInputSchema, decodeImageBase64, ModelOutputError } from "@/lib/analysis-schema";
+import { investigateInputSchema, ModelOutputError } from "@/lib/analysis-schema";
 import { LIMITS } from "@/lib/limits";
 import { type PublicErrorCode, publicErrorMessage } from "@/lib/public-errors";
-import { diagnose, type ModelCaller, ProviderError } from "@/lib/server/diagnose";
+import { investigate, type ModelCaller, ProviderError } from "@/lib/server/diagnose";
 import { createGemmaCaller } from "@/lib/server/gemma";
+import { hasDemoAccess, isSameOrigin } from "@/lib/server/handle-analyze";
 import { acquireAnalysisSlot, clientRateKey } from "@/lib/server/rate-limit";
-import { validateImageBytes } from "@/lib/validate-upload";
 
 type HandleDeps = {
   caller?: ModelCaller;
 };
 
-export async function handleAnalyze(request: Request, deps: HandleDeps = {}): Promise<Response> {
+export async function handleInvestigate(request: Request, deps: HandleDeps = {}): Promise<Response> {
   const started = Date.now();
   if (!isSameOrigin(request)) {
     return jsonError(403, "unsupported_origin");
@@ -31,44 +30,29 @@ export async function handleAnalyze(request: Request, deps: HandleDeps = {}): Pr
   }
 
   try {
-    const body = await readJson(request);
-    if (!body) {
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
       return jsonError(400, "invalid_body");
     }
 
-    const parsed = analyzeInputSchema.safeParse(body);
+    const parsed = investigateInputSchema.safeParse(body);
     if (!parsed.success) {
       const tooLong = parsed.error.issues.some((issue) => issue.message === "text_too_long");
       return jsonError(400, tooLong ? "text_too_long" : "invalid_body");
     }
 
-    const bytes = decodeImageBase64(parsed.data.imageBase64);
-    if (!bytes) {
-      return jsonError(400, "invalid_image");
-    }
-    const image = validateImageBytes(bytes);
-    if (!image.ok) {
-      return jsonError(400, image.code);
-    }
-
     const caller = deps.caller ?? createGemmaCaller(request.signal);
-    const report = await diagnose(
-      {
-        image: { mimeType: image.mimeType, dataBase64: Buffer.from(bytes).toString("base64") },
-        framework: parsed.data.framework,
-        context: parsed.data.context,
-        code: parsed.data.code,
-        language: parsed.data.language,
-      },
-      caller,
-    );
+    const report = await investigate(parsed.data, caller);
 
     console.info(
       JSON.stringify({
-        event: "analyze",
+        event: "investigate",
         outcome: "ok",
         status: report.status,
         model: report.metadata.model,
+        round: parsed.data.round,
         durationMs: Date.now() - started,
       }),
     );
@@ -77,7 +61,7 @@ export async function handleAnalyze(request: Request, deps: HandleDeps = {}): Pr
     const code = errorCode(error);
     console.info(
       JSON.stringify({
-        event: "analyze",
+        event: "investigate",
         outcome: code,
         durationMs: Date.now() - started,
       }),
@@ -125,67 +109,4 @@ function jsonError(status: number, code: PublicErrorCode): Response {
     { ok: false, error: { code, message: publicErrorMessage[code] } },
     { status },
   );
-}
-
-async function readJson(request: Request): Promise<unknown | null> {
-  try {
-    return await request.json();
-  } catch {
-    return null;
-  }
-}
-
-export function isSameOrigin(request: Request): boolean {
-  const origin = request.headers.get("origin");
-  if (!origin) {
-    return true;
-  }
-  let originHost: string;
-  try {
-    originHost = new URL(origin).host.toLowerCase();
-  } catch {
-    return false;
-  }
-  return allowedHosts(request).includes(originHost);
-}
-
-/** Trusted hosts only: PUBLIC_APP_URL, request Host/URL, and localhost in development. */
-function allowedHosts(request: Request): string[] {
-  const hosts = new Set<string>();
-  const publicUrl = process.env.PUBLIC_APP_URL?.trim();
-  if (publicUrl) {
-    try {
-      hosts.add(new URL(publicUrl).host.toLowerCase());
-    } catch {
-      // Ignore a malformed PUBLIC_APP_URL; Host and URL still apply.
-    }
-  }
-  const hostHeader = request.headers.get("host");
-  if (hostHeader) {
-    hosts.add(hostHeader.toLowerCase());
-  }
-  try {
-    hosts.add(new URL(request.url).host.toLowerCase());
-  } catch {
-    // Ignore malformed request URL.
-  }
-  if (process.env.NODE_ENV !== "production") {
-    hosts.add("localhost:3000");
-    hosts.add("127.0.0.1:3000");
-  }
-  return [...hosts];
-}
-
-export function hasDemoAccess(request: Request): boolean {
-  const expected = process.env.DEMO_ACCESS_TOKEN?.trim();
-  if (!expected) {
-    return true;
-  }
-  const provided = request.headers.get("x-demo-access") ?? "";
-  const left = Buffer.from(provided);
-  const right = Buffer.from(expected);
-  if (left.length !== right.length) {
-    return false;
-  }
-  return timingSafeEqual(left, right);
 }

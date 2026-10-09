@@ -30,6 +30,11 @@ const validOutput = {
   ],
   missingContext: [],
   limitations: ["La capture ne montre pas l'appel réseau."],
+  investigationQuestion: null,
+  learn: null,
+  learnedPrinciple: null,
+  prevention: [],
+  changeNotes: [],
 };
 
 const metadata = {
@@ -46,7 +51,35 @@ describe("parseModelOutput", () => {
     );
     expect(output.observedError).toBe(validOutput.observedError);
     expect(output).not.toHaveProperty("metadata");
+    expect(output.investigationQuestion).toBeNull();
+    expect(output.learn).toBeNull();
+    expect(output.prevention).toEqual([]);
+    expect(output.changeNotes).toEqual([]);
   });
+
+  it("accepts pedagogical fields from a single model response", () => {
+    const output = parseModelOutput(
+      JSON.stringify({
+        ...validOutput,
+        investigationQuestion: {
+          prompt: "Comment users est-il initialisé ?",
+          why: "Pour distinguer état initial et API.",
+        },
+        learn: {
+          question: "Que reçoit map ?",
+          hint: "Un tableau.",
+          explanation: "undefined n'a pas de map.",
+        },
+        learnedPrinciple: "Aligner l'état initial sur le rendu.",
+        prevention: ["Typer l'état."],
+        changeNotes: ["useState([])"],
+      }),
+    );
+    expect(output.learn?.question).toContain("map");
+    expect(output.learnedPrinciple).toContain("état initial");
+    expect(output.changeNotes).toEqual(["useState([])"]);
+  });
+
 
   it("accepts JSON wrapped in a fence", () => {
     expect(parseModelOutput("```json\n" + JSON.stringify(validOutput) + "\n```").status).toBe(

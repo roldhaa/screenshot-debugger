@@ -1,11 +1,13 @@
 import {
   type AnalysisReport,
+  type InvestigateInput,
   ModelOutputError,
   type ModelOutput,
   parseModelOutput,
 } from "@/lib/analysis-schema";
 import { LIMITS } from "@/lib/limits";
 import {
+  buildInvestigatePrompt,
   buildRepairPrompt,
   buildUserPrompt,
   FALLBACK_MODEL,
@@ -50,7 +52,7 @@ export type DiagnosisRequest = {
 
 export type ModelCall = {
   model: string;
-  purpose: "diagnose" | "repair";
+  purpose: "diagnose" | "repair" | "investigate";
   image?: DiagnosisImage;
   userText: string;
   responseSchema: boolean;
@@ -105,6 +107,77 @@ export async function diagnose(
       text = await invoke(diagnoseCall(fallback, true));
     } else if (mapped.kind === "transient" && now() - started < LIMITS.fastRetryMs) {
       text = await invoke(diagnoseCall(primary, true));
+    } else {
+      throw mapped;
+    }
+  }
+
+  const finish = (output: ModelOutput): AnalysisReport => ({
+    ...output,
+    metadata: {
+      model: modelUsed,
+      mode: "live",
+      promptVersion: PROMPT_VERSION,
+      durationMs: Math.max(0, now() - started),
+    },
+  });
+
+  try {
+    return finish(parseModelOutput(text));
+  } catch (error) {
+    if (!(error instanceof ModelOutputError)) {
+      throw error;
+    }
+    const repaired = await invoke({
+      model: modelUsed,
+      purpose: "repair",
+      userText: buildRepairPrompt(text),
+      responseSchema: true,
+    });
+    return finish(parseModelOutput(repaired));
+  }
+}
+
+export async function investigate(
+  input: InvestigateInput,
+  caller: ModelCaller,
+  options: DiagnoseOptions = {},
+): Promise<AnalysisReport> {
+  const now = options.now ?? Date.now;
+  const started = now();
+  const primary = options.model ?? (process.env.GEMMA_MODEL?.trim() || PRIMARY_MODEL);
+  const fallback = options.fallbackModel ?? FALLBACK_MODEL;
+  let calls = 0;
+  let modelUsed = primary;
+
+  const invoke = async (request: ModelCall) => {
+    if (calls >= LIMITS.maxProviderCalls) {
+      throw new ProviderError("unavailable");
+    }
+    calls += 1;
+    return caller(request);
+  };
+
+  const userText = buildInvestigatePrompt(input);
+  const investigateCall = (model: string, responseSchema: boolean): ModelCall => ({
+    model,
+    purpose: "investigate",
+    userText,
+    responseSchema,
+  });
+
+  let text: string;
+  try {
+    text = await invoke(investigateCall(primary, true));
+  } catch (error) {
+    const mapped = error instanceof ProviderError ? error : new ProviderError("unavailable");
+    if (mapped.kind === "schema_unsupported") {
+      text = await invoke(investigateCall(primary, false));
+    } else if (mapped.kind === "model_not_found" && fallback !== primary) {
+      modelUsed = fallback;
+      text = await invoke(investigateCall(fallback, true));
+    } else if (mapped.kind === "transient" && now() - started < LIMITS.fastRetryMs) {
+      text = await invoke(investigateCall(primary, true));
     } else {
       throw mapped;
     }
