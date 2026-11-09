@@ -83,10 +83,10 @@ describe("handleAnalyze", () => {
     );
     expect(cross.status).toBe(403);
 
-    process.env.PUBLIC_APP_URL = "https://screenshot-debugger-qzyjc.ondigitalocean.app";
+    process.env.PUBLIC_APP_URL = "https://screenshot-debugger.vercel.app";
     const proxied = await handleAnalyze(
       request(input, {
-        origin: "https://screenshot-debugger-qzyjc.ondigitalocean.app",
+        origin: "https://screenshot-debugger.vercel.app",
       }),
       { caller: async () => validJson },
     );

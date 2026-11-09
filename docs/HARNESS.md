@@ -20,7 +20,7 @@ Entry points:
 - Max two provider calls per user action.
 - No model tools, no shell from the response, no automatic fix execution.
 - Fast server errors may retry once if under `LIMITS.fastRetryMs`.
-- Gateway timeouts on DigitalOcean are host limits, not harness inventiveness.
+- Gateway / platform timeouts are host limits, not harness inventiveness.
 
 ## Proof for judges
 

@@ -1,6 +1,6 @@
-# Applying this spec creates a paid App Platform web service.
-# Smallest size: apps-s-1vcpu-0.5gb, about $5 per month.
-# Do not apply it until that charge is accepted.
+# ARCHIVE ONLY — public hosting is Vercel: https://screenshot-debugger.vercel.app
+# Applying this spec would create a paid App Platform web service (~$5/month).
+# Do not apply it unless you intentionally want that charge.
 name: screenshot-debugger
 region: tor
 services:
@@ -24,5 +24,5 @@ services:
         value: gemma-4-26b-a4b-it
       - key: PUBLIC_APP_URL
         scope: RUN_TIME
-        value: https://screenshot-debugger-qzyjc.ondigitalocean.app
+        value: https://screenshot-debugger.vercel.app
 

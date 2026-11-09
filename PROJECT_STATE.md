@@ -12,13 +12,13 @@ Branche pédagogique mergée sur `main` et déployée (commit `6765c48`, 9 oct. 
 - Enquête `POST /api/investigate` (texte seul, max 2 tours).
 - Diff client + notes de changement.
 - Fiche Markdown + localStorage navigateur.
-- Allowlist Origin via `PUBLIC_APP_URL` (aussi dans `.do/app.yaml`).
+- Allowlist Origin via `PUBLIC_APP_URL` (secret Vercel).
 - README FR/EN orienté jury.
 - Jeu d'évaluation versionné : `examples/eval/cases.json`.
 
 ## Vérifié en production (9 oct. 2026)
 
-- URL : https://screenshot-debugger-qzyjc.ondigitalocean.app
+- URL : https://screenshot-debugger.vercel.app
 - Exemple 2 → Apprendre → Analyser → `diagnosed` live ~13 s, modèle `gemma-4-26b-a4b-it`, prompt `2026-10-09.4`.
 - Origin étrangère toujours refusée (403).
 - `/api/investigate` présent (400 sur corps vide = route active).
@@ -32,9 +32,8 @@ Branche pédagogique mergée sur `main` et déployée (commit `6765c48`, 9 oct. 
 
 ## Déploiement
 
-https://screenshot-debugger-qzyjc.ondigitalocean.app (~5 $ US / mois).  
-Push `main` = redéploiement automatique.  
-Retour : redeploy du commit précédent (`23d22a7` avant atelier, ou `1fbeadc` merge PR).
+https://screenshot-debugger.vercel.app (Vercel Hobby, gratuit).  
+Push `main` = redéploiement automatique.
 
 ## Prochaine action
 

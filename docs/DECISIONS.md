@@ -72,21 +72,17 @@ Compromis : rien n'est conservé par l'application entre les sessions. Google et
 
 Jury : « On a construit le diagnostic, pas un produit de comptes. »
 
-## DigitalOcean plutôt qu'un site statique
+## Hébergement serveur plutôt qu'un site statique
 
-Décision : un Web Service App Platform, spec dans `.do/app.yaml`, taille `apps-s-1vcpu-0.5gb`.
+Décision : héberger Next.js avec routes API (clé serveur). Démo publique actuelle : **Vercel** Hobby — https://screenshot-debugger.vercel.app
 
 Besoin : la route d'analyse doit tourner avec la clé sur le serveur.
 
-Pourquoi : un site statique ne peut pas appeler Gemma sans exposer la clé. Next.js est déjà le serveur. Aucune migration.
+Pourquoi : un site statique ne peut pas appeler Gemma sans exposer la clé.
 
-Alternative : Vercel. Le compte CLI était déconnecté, et le cahier demande maintenant DigitalOcean.
+Historique : une spec DigitalOcean App Platform (`.do/app.yaml`) a servi pendant le hackathon ; l’URL publique DigitalOcean n’est plus utilisée.
 
-Compromis : ce conteneur coûte environ 5 $ US par mois. Il n'a pas été créé. 512 Mio peuvent être justes pour Next.js.
-
-Validation : la spec cite les commandes réelles `npm run build` et `npm start`. Next.js 16.4 écoute `0.0.0.0` et `PORT`. Aucune URL n'a été ouverte.
-
-Jury : « DigitalOcean hébergerait le serveur qui appelle Gemma. On n'a pas lancé le conteneur payant sans accord. »
+Jury : « Vercel héberge le serveur qui appelle Gemma ; la clé reste hors navigateur. »
 
 ## Limite d'abus
 

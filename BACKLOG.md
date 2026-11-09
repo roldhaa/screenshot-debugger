@@ -14,7 +14,7 @@ Estimations indicatives, pas des garanties. Ordre : P0 restant, puis P1, puis P2
 | Interface | terminé | parcours navigateur local |
 | Exemple React avant/après | terminé | `node examples/react-map-undefined/verify.mjs` |
 | Appel Gemma réel | terminé | `gemma-4-26b-a4b-it`, mode `live`, capture React diagnostiquée en 9 s sur l'URL publique |
-| Déploiement DigitalOcean | en ligne | https://screenshot-debugger-qzyjc.ondigitalocean.app, environ 5 $ US par mois |
+| Déploiement Vercel | en ligne | https://screenshot-debugger.vercel.app (Hobby, gratuit) |
 | Textes de soumission | terminé | `docs/SUBMISSION.md`, confirmation du formulaire encore à faire |
 | Agent Skill | terminé | `.agents/skills/screenshot-debugger/SKILL.md` |
 | Model harness CLI | terminé | `npm run harness:demo`, `docs/HARNESS.md` |

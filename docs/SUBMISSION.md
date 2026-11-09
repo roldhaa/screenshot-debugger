@@ -6,8 +6,8 @@ La confirmation dans OrganizerHQ reste à faire par Harold.
 
 - Nom : Screenshot Debugger
 - Lien GitHub : https://github.com/roldhaa/screenshot-debugger
-- URL de démo : https://screenshot-debugger-qzyjc.ondigitalocean.app
-- Technologies : Next.js, TypeScript, Tailwind CSS, Zod, Gemma 4 via la Gemini API (`@google/genai`), DigitalOcean App Platform
+- URL de démo : https://screenshot-debugger.vercel.app
+- Technologies : Next.js, TypeScript, Tailwind CSS, Zod, Gemma 4 via la Gemini API (`@google/genai`), Vercel
 
 ## Description
 
@@ -26,7 +26,7 @@ Screenshot Debugger est un atelier de débogage guidé pour étudiants en JavaSc
 | Agent Skill | `.agents/skills/screenshot-debugger/SKILL.md` |
 | Model harness | `docs/HARNESS.md`, `lib/server/diagnose.ts` |
 | Atelier pédagogique | modes Apprendre / Direct, `POST /api/investigate`, fiche |
-| DigitalOcean | App Platform Web Service |
+| Vercel | Hobby (gratuit), Next.js + secrets serveur |
 | Sécurité | clé serveur, Origin allowlist, pas d'exécution |
 
 ## Terminé / reporté

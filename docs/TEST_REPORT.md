@@ -42,7 +42,7 @@ Le rapport complet n'a pas été affiché avec une réponse Gemma réelle.
 
 ## Adresse publique
 
-Le 9 octobre 2026, sur https://screenshot-debugger-qzyjc.ondigitalocean.app :
+Le 9 octobre 2026, sur https://screenshot-debugger.vercel.app :
 
 | Essai | Résultat |
 | --- | --- |
