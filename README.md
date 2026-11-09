@@ -12,15 +12,16 @@
 **FR ·** Même esprit que Stack Overflow : comprendre l’erreur, expliquer la cause, partager une correction lisible. **Pas d’affiliation** avec Stack Overflow / Stack Exchange — projet indépendant, open source. L’app n’exécute jamais la correction.  
 **EN ·** Same spirit as Stack Overflow: understand the error, explain the cause, share a readable fix. **Not affiliated** with Stack Overflow / Stack Exchange — independent open-source project. The app never runs the fix.
 
-**Démo en ligne / Live demo :** [https://screenshot-debugger-qzyjc.ondigitalocean.app/](https://screenshot-debugger-qzyjc.ondigitalocean.app/)  
-(URL vérifiée le 9 octobre 2026 / checked on 9 October 2026. Quota Google et disponibilité non garantis.)
+**Démo en ligne / Live demo (gratuit) :** [https://screenshot-debugger.vercel.app](https://screenshot-debugger.vercel.app)  
+**Miroir DigitalOcean :** [https://screenshot-debugger-qzyjc.ondigitalocean.app/](https://screenshot-debugger-qzyjc.ondigitalocean.app/)  
+(Quota Google et disponibilité non garantis / Google quota and uptime not guaranteed.)
 
 | | |
 | --- | --- |
 | Hackathon | Hacktoberfest Hack Day Montréal x AGEEI — 9 octobre 2026 |
 | Catégories MLH | Best Use of Gemma 4 · Best Open-Source AI Project |
 | Modèle / Model | Gemma 4 open-weight `gemma-4-26b-a4b-it` (via Gemini API) |
-| Hébergement / Hosting | DigitalOcean App Platform Web Service (~5 $ US / mois) |
+| Hébergement / Hosting | **Vercel** (Hobby, gratuit) · DigitalOcean App Platform (miroir ~5 $ US / mois) |
 | Agent Skill | [`.agents/skills/screenshot-debugger/SKILL.md`](.agents/skills/screenshot-debugger/SKILL.md) |
 | Model harness | [`docs/HARNESS.md`](docs/HARNESS.md) · `npm run harness:demo` |
 
@@ -37,7 +38,7 @@
 7. [Gemma](#gemma)
 8. [Lancer le projet / Run locally](#lancer-le-projet--run-locally)
 9. [Captures et secrets / Uploads & secrets](#captures-et-secrets--uploads--secrets)
-10. [DigitalOcean](#digitalocean)
+10. [Hébergement / Hosting (Vercel + DigitalOcean)](#hébergement--hosting-vercel--digitalocean)
 11. [Vérifier le dépôt / Verify the repo](#vérifier-le-dépôt--verify-the-repo)
 12. [Sécurité / Security](#sécurité--security)
 13. [Limites connues / Known limits](#limites-connues--known-limits)
@@ -60,11 +61,11 @@
 | Image réelle, pas du texte inventé | Oui : Files API → `createPartFromUri`, fichier supprimé après l’appel |
 | Appel live prouvable | Oui : `npm run harness:demo` / `npm run prove:gemma` → `mode: live` (~9–13 s) |
 | Dépôt public + licence open source | Oui : GitHub + [MIT](LICENSE) |
-| Infra DigitalOcean | Oui : App Platform Web Service, [URL](https://screenshot-debugger-qzyjc.ondigitalocean.app/), ~5 $ US / mois |
+| Infra hébergée (DO / Vercel) | Oui : [Vercel](https://screenshot-debugger.vercel.app) (gratuit) + miroir [DigitalOcean](https://screenshot-debugger-qzyjc.ondigitalocean.app/) |
 | Agent Skill (standard ouvert) | Oui : [`.agents/skills/screenshot-debugger/SKILL.md`](.agents/skills/screenshot-debugger/SKILL.md) |
 | Model harness original | Oui : [`diagnose.ts`](lib/server/diagnose.ts) + [`gemma.ts`](lib/server/gemma.ts) + [`docs/HARNESS.md`](docs/HARNESS.md) |
 | Produit pédagogique démo-able | Oui : Apprendre / Direct, enquête, diff, fiche |
-| Clé hors navigateur | Oui : secret serveur DO, jamais `NEXT_PUBLIC_` |
+| Clé hors navigateur | Oui : secret serveur Vercel / DO, jamais `NEXT_PUBLIC_` |
 
 ### Best Use of Gemma 4
 
@@ -98,7 +99,7 @@
 1. **Produit utilisable** FR/EN : capture → diagnostic → correction → vérifications.
 2. **Trois boutons de démo** (Exemple 2 en premier) + **dix captures** dans [`examples/demo-captures/`](examples/demo-captures/).
 3. **Agent Skill** + **harness CLI** (sans Launchpad ELK/RAG/GPU hors besoin).
-4. **DigitalOcean** App Platform (clé hors navigateur).
+4. **Hébergement** : Vercel Hobby (gratuit) + miroir DigitalOcean (clé hors navigateur).
 5. **Preuve avant / après** : `node examples/react-map-undefined/verify.mjs`.
 
 Hors scope volontaire : Launchpad Observability / RAG / Airflow, GPU Droplets, cache de réponses, OAuth, communauté publique.
@@ -212,7 +213,8 @@ Exemple de sortie observée / sample live output :
 
 ## Démonstration pour le jury / Judge demo
 
-**URL publique :** [screenshot-debugger-qzyjc.ondigitalocean.app](https://screenshot-debugger-qzyjc.ondigitalocean.app)
+**URL publique (recommandée) :** [screenshot-debugger.vercel.app](https://screenshot-debugger.vercel.app)  
+**Miroir :** [screenshot-debugger-qzyjc.ondigitalocean.app](https://screenshot-debugger-qzyjc.ondigitalocean.app)
 
 ### Test rapide dans l’application (recommandé) / In-app path
 
@@ -327,35 +329,52 @@ npm run build && npm start
 
 | Nom | Où | Rôle |
 | --- | --- | --- |
-| `GEMINI_API_KEY` | `.env` ou secret DO | Clé serveur. Jamais `NEXT_PUBLIC_`. |
+| `GEMINI_API_KEY` | `.env` ou secret Vercel / DO | Clé serveur. Jamais `NEXT_PUBLIC_`. |
 | `GEMMA_MODEL` | optionnel | Défaut `gemma-4-26b-a4b-it`. |
-| `PUBLIC_APP_URL` | optionnel | Allowlist Origin (URL publique). |
+| `PUBLIC_APP_URL` | optionnel | Allowlist Origin (ex. `https://screenshot-debugger.vercel.app`). |
 | `DEMO_ACCESS_TOKEN` | optionnel | Si défini → en-tête `x-demo-access`. |
 
-`.env` est ignoré par Git. [`.env.example`](.env.example) est vide de secrets.
+`.env` est ignoré par Git. [`.env.example`](.env.example) est vide de secrets. Sur Vercel : Project → Settings → Environment Variables (Production / Preview / Development).
 
 **FR ·** PNG/JPEG par signature magique. Max 2 Mio, 4096 px, 8 M pixels. Contexte + code ≤ 15 000 caractères. Masque mots de passe et jetons. Pas de log d’image, code ou clé.  
 **EN ·** PNG/JPEG by magic bytes. Max 2 MiB / 4096 px / 8M pixels. Context + code ≤ 15 000 chars. Redact secrets. No logging of image, code, or key.
 
 ---
 
-## DigitalOcean
+## Hébergement / Hosting (Vercel + DigitalOcean)
 
-Web Service [App Platform](https://docs.digitalocean.com/products/app-platform/) — un site statique ne peut pas garder la clé hors navigateur. Spec : [`.do/app.yaml`](.do/app.yaml). Notes : [`docs/DIGITALOCEAN.md`](docs/DIGITALOCEAN.md).
+Les deux hébergent **Next.js** (routes API + clé serveur). Aucun n’héberge les poids Gemma.
+
+### Vercel (démo principale, Hobby gratuit)
 
 | Réglage | Valeur |
 | --- | --- |
-| Build | `npm run build` |
-| Démarrage | `npm start` |
+| URL | [https://screenshot-debugger.vercel.app](https://screenshot-debugger.vercel.app) |
+| Projet | `harold-eee5/screenshot-debugger` |
+| Branche | `main` (deploy on push) |
+| Secrets | `GEMINI_API_KEY` (secret), `GEMMA_MODEL`, `PUBLIC_APP_URL=https://screenshot-debugger.vercel.app` |
+| Auth visiteurs | Désactivée (accès public) |
+
+```bash
+vercel link --yes --project screenshot-debugger
+vercel deploy --prod --yes
+```
+
+### DigitalOcean (miroir)
+
+Web Service [App Platform](https://docs.digitalocean.com/products/app-platform/). Spec : [`.do/app.yaml`](.do/app.yaml). Notes : [`docs/DIGITALOCEAN.md`](docs/DIGITALOCEAN.md).
+
+| Réglage | Valeur |
+| --- | --- |
+| URL | [https://screenshot-debugger-qzyjc.ondigitalocean.app](https://screenshot-debugger-qzyjc.ondigitalocean.app) |
+| Build / start | `npm run build` / `npm start` |
 | Port | `8080` |
 | Région | Toronto (`tor`) |
-| Branche | `main`, `deploy_on_push: true` |
-| Taille | `apps-s-1vcpu-0.5gb`, ~5 $ US / mois (confirmer au billing) |
-| Secret | `GEMINI_API_KEY` |
-| Env | `GEMMA_MODEL`, `PUBLIC_APP_URL` |
+| Taille | `apps-s-1vcpu-0.5gb`, ~5 $ US / mois |
+| Secret / env | `GEMINI_API_KEY`, `GEMMA_MODEL`, `PUBLIC_APP_URL` |
 
-**FR ·** DigitalOcean héberge Next.js. Il n’héberge **pas** les poids Gemma. Push `main` = redéploiement.  
-**EN ·** DO hosts Next.js, not Gemma weights. Pushing `main` redeploys.
+**FR ·** Push `main` redéploie Vercel et DigitalOcean.  
+**EN ·** Pushing `main` redeploys both hosts.
 
 ---
 
